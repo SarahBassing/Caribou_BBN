@@ -179,97 +179,6 @@
   write_csv(p.AFn, "./Conditional_Probability_Tables/CPT_Abundance_adultFemales.csv")
   
   
-  AM.survival <- 1 # Holding fixed value for when adult male survival is low
-  N.sourcePop <- seq(10, 200, by = 20) # Abundance of source population ranges 10 - 200  
-  N.sourcePopz <- scale(N.sourcePop)
-  # a <- 5 # Intercept for low abundance category 
-  # b1 <- 1 # Slope coef for adult male survival
-  # b2 <- -0.1 # Slope coef for abundance of source population
-  a <- 2 #1 # Intercept for low abundance category 
-  b1 <- -2 #-10 #-1.5 #-1 # Slope coef for abundance of source population   
-  b2 <- -1 #-3 #-1 #0.6 #-1 # Slope coef for adult male survival
-  
-  #'  Probability of adult male abundance being low given low male survival over 
-  #'  a range of population sizes of the source population
-  (p.low.AMn.phi1 <- 1/(1+exp(-(a + b1*N.sourcePopz + b2*AM.survival))))
-  #'  Probability of adult male abundance being high given low male survival over 
-  #'  a range of population sizes of the source population
-  p.high.AMn.phi1 <- 1 - p.low.AMn.phi1
-  
-  (p.AMn <- cbind(p.low.AMn.phi1, p.high.AMn.phi1)) # create data frame of just Prob of being in bottom, middle, or top category
-  newdf <- data.frame(N.sourcePop = N.sourcePop, p1 = p.low.AMn.phi1, p2 = p.high.AMn.phi1) %>%
-    pivot_longer(cols = c('p1','p2'),names_to = "p",values_to = "prob")
-  ggplot(newdf, aes(x = N.sourcePop, y = prob)) + 
-    ylim(0, 1)+
-    geom_line(aes(color = p)) +
-    xlab("Source population size")+
-    ylab("Prob(Adult male N)")+
-    ggtitle("Adult male abundance when survival is low") +
-    theme(
-      legend.position = "top",
-      legend.justification = c("left"),
-      legend.box.just = "right",
-      legend.margin = margin(6, 6, 6, 6)) +
-    scale_color_manual(name = '', labels = c('Low N', 'High N'), #name = 'Adult male abundance'
-                       values = c('red', 'blue', 'green'))
- 
-  AM.survival <- 2 # Holding fixed value for when adult male survival is moderate
-  N.sourcePop <- seq(10, 200, by = 20) # Abundance of source population ranges 10 - 200
-  N.sourcePopz <- scale(N.sourcePop)
-  a <- 2 #1 # Intercept for low abundance category 
-  b1 <- -2 #-0.02 # Slope coef for abundance of source population
-  b2 <- -1 #0.05 # Slope coef for adult male survival
-  #'  Probability of adult male abundance being low given moderate male survival over 
-  #'  a range of population sizes of the source population
-  (p.low.AMn.phi2 <- 1/(1+exp(-(a + b1*N.sourcePopz + b2*AM.survival))))
-  #'  Probability of adult male abundance being high given moderate male survival over 
-  #'  a range of population sizes of the source population
-  p.high.AMn.phi2 <- 1 - p.low.AMn.phi2
-  (p.AMn <- cbind(p.low.AMn.phi2, p.high.AMn.phi2)) # create data frame of just Prob of being in bottom, middle, or top category
-  newdf <- data.frame(N.sourcePop = N.sourcePop, p1 = p.low.AMn.phi2, p2 = p.high.AMn.phi2) %>%
-    pivot_longer(cols = c('p1','p2'),names_to = "p",values_to = "prob")
-  ggplot(newdf, aes(x = N.sourcePop, y = prob)) + 
-    ylim(0, 1)+
-    geom_line(aes(color = p)) +
-    xlab("Source population size")+
-    ylab("Prob(Adult male N)")+
-    ggtitle("Adult male abundance when survival is moderate") +
-    theme(
-      legend.position = "top",
-      legend.justification = c("left"),
-      legend.box.just = "right",
-      legend.margin = margin(6, 6, 6, 6)) +
-    scale_color_manual(name = '', labels = c('Low N', 'High N'), #name = 'Adult male abundance'
-                       values = c('red', 'blue', 'green'))
-  
-  AM.survival <- 3 # Holding fixed value for when adult male survival is high
-  N.sourcePop <- seq(10, 200, by = 20) # Abundance of source population ranges 10 - 200
-  N.sourcePopz <- scale(N.sourcePop)
-  a <- 2 #7 #0.2 # Intercept for low abundance category 
-  b1 <- -2 #-0.05 #-0.02 # Slope coef for abundance of source population
-  b2 <- -1 #-0.01 #0.01 # Slope coef for adult male survival
-  #'  Probability of adult male abundance being low given high male survival over 
-  #'  a range of population sizes of the source population
-  (p.low.AMn.phi3 <- 1/(1+exp(-(a + b1*N.sourcePopz + b2*AM.survival))))
-  #'  Probability of adult male abundance being high given high male survival over 
-  #'  a range of population sizes of the source population
-  p.high.AMn.phi3 <- 1 - p.low.AMn.phi3
-  (p.AMn <- cbind(p.low.AMn.phi3, p.high.AMn.phi3)) # create data frame of just Prob of being in bottom, middle, or top category
-  newdf <- data.frame(N.sourcePop = N.sourcePop, p1 = p.low.AMn.phi3, p2 = p.high.AMn.phi3) %>%
-    pivot_longer(cols = c('p1','p2'),names_to = "p",values_to = "prob")
-  ggplot(newdf, aes(x = N.sourcePop, y = prob)) + 
-    ylim(0, 1)+
-    geom_line(aes(color = p)) +
-    xlab("Source population size")+
-    ylab("Prob(Adult male N)")+
-    ggtitle("Adult male abundance when survival is high") +
-    theme(
-      legend.position = "top",
-      legend.justification = c("left"),
-      legend.box.just = "right",
-      legend.margin = margin(6, 6, 6, 6)) +
-    scale_color_manual(name = '', labels = c('Low N', 'High N'), #name = 'Adult male abundance'
-                       values = c('red', 'blue', 'green'))
   
   
   
@@ -277,6 +186,17 @@
   
   
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ####  OLD CODE - PROBABLY DON'T NEED  ####
   #'  Define nature nodes
   climate.change <- c("Bad", "Worse", "We fucked")
   # hab.quality <- data.frame(score = c("Poor", "Moderate", "High"), hq = c(-0.8, 0.0, 0.8))
