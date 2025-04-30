@@ -228,7 +228,7 @@
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
       scale_color_manual(name = '', labels = c('Low phi', 'Moderate phi', 'High phi'),
-                         values = c('red', 'blue', 'green'))
+                         values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
@@ -311,7 +311,7 @@
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
       scale_color_manual(name = '', labels = c('Low phi', 'Moderate phi', 'High phi'),
-                         values = c('red', 'blue', 'green'))
+                         values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
@@ -390,7 +390,7 @@
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
       scale_color_manual(name = '', labels = c('Low fecundity', 'Moderate fecundity', 'High fecundity'),
-                         values = c('red', 'blue', 'green'))
+                         values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
@@ -470,7 +470,7 @@
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
       scale_color_manual(name = '', labels = c('Low phi', 'Moderate phi', 'High phi'),
-                         values = c('red', 'blue', 'green'))
+                         values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
