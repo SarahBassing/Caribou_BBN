@@ -9,29 +9,29 @@
   library(purrr)
   library(ggplot2)
   
-  #'  Define levels for source pop N and AM phi
-  abund.sourcePop <- seq(10, 200, by = 20)
-  survival.AM <- c(1, 2, 3)
-  #'  Create data frame containing full cross of all parent node levels
-  df <- expand.grid(source.N = abund.sourcePop, survival.M = survival.AM) %>%
-    tidyr::expand(source.N, survival.M) %>%
-    mutate(source.N = factor(source.N),
-           survival.M = factor(survival.M))
-  
-  #'  Define coefficients
-  alpha <- -8
-  beta.source <- 1 
-  beta.am.phi <- 0.6
-  (df$y <- 1 / (1 + exp(-(alpha + beta.source*as.numeric(df$source.N) + beta.am.phi*as.numeric(df$survival.M)))))
-  
-  #'  Plot 
-  ggplot(data = df, aes(x = source.N, y = y, group = survival.M)) + 
-    geom_line(aes(color = survival.M)) +
-    xlab("Source population abundance")+
-    ylab("Pr(Adult male abundance = High)")+
-    guides(color = guide_legend(title = "Adult male \nsurvival"))+
-    scale_color_manual(values = c("red", "blue", "green"),
-                       labels = c('Low', 'Medium', 'High'))
+  #' #'  Define levels for source pop N and AM phi
+  #' abund.sourcePop <- seq(10, 200, by = 20)
+  #' survival.AM <- c(1, 2, 3)
+  #' #'  Create data frame containing full cross of all parent node levels
+  #' df <- expand.grid(source.N = abund.sourcePop, survival.M = survival.AM) %>%
+  #'   tidyr::expand(source.N, survival.M) %>%
+  #'   mutate(source.N = factor(source.N),
+  #'          survival.M = factor(survival.M))
+  #' 
+  #' #'  Define coefficients
+  #' alpha <- -8
+  #' beta.source <- 1 
+  #' beta.am.phi <- 0.6
+  #' (df$y <- 1 / (1 + exp(-(alpha + beta.source*as.numeric(df$source.N) + beta.am.phi*as.numeric(df$survival.M)))))
+  #' 
+  #' #'  Plot 
+  #' ggplot(data = df, aes(x = source.N, y = y, group = survival.M)) + 
+  #'   geom_line(aes(color = survival.M)) +
+  #'   xlab("Source population abundance")+
+  #'   ylab("Pr(Adult male abundance = High)")+
+  #'   guides(color = guide_legend(title = "Adult male \nsurvival"))+
+  #'   scale_color_manual(values = c("red", "blue", "green"),
+  #'                      labels = c('Low', 'Medium', 'High'))
   
   #'  ------------------------------------------------
   ####  Conditional Probability Tables for each node  ####
@@ -48,14 +48,128 @@
   #'  ----------------------
   #'  Predict probability of low, medium, or high abundances of alternative prey
   #'  sources (e.g., deer, elk, moose) under varying levels of habitat availability
+  Abundance_altPrey <- function() {
+    #'  Habitat availability (amount of suitable habitat in sq-km)
+    habitat.avail <- seq(0, 500, by = 50)
+    #'  Center and scale habitat.avail so values don't range too widely
+    habitat.availz <- scale(habitat.avail)
+    
+    #'  Define intercept and slope coefficients
+    #'  H: Availability of suitable habitat increases abundance of alternative prey
+    alpha <- 0 # Intercept for low prey abundance
+    beta1 <- -2 # Slope for habitat availability effect
+    
+    #'  Calculate probability alternative prey abundance will be low vs high given 
+    #'  varying amounts of available habitat
+    (p.PreynLo <- 1/(1 + exp(-(alpha + beta1*habitat.availz))))
+    (p.PreynHi <- 1 - p.PreynLo)
+    
+    #'  Create data frame with probabilities of prey abundance being low or high
+    (p.Preyn <- cbind(p.PreynLo, p.PreynHi))
+    #'  Add habitat availability covariate data to data frame
+    df <- data.frame(habitat.avail = habitat.avail, p1 = p.PreynLo, p2 = p.PreynHi) 
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% 
+      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+    
+    #'  Plot probability of prey abundance being low or high, given level
+    #'  of available habitat
+    prediction_plot <- ggplot(df_plot, aes(x = habitat.avail, y = prob)) + 
+      ylim(0, 1) +
+      geom_line(aes(color = p)) +
+      xlab("Habitat suitability (sq-km)")+
+      ylab("Prob(Prey abundance)")+
+      ggtitle(paste("Prey abundance over varying levels of habitat availability")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+                         values = c('red', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+    
+  }
+  p.PreyN <- Abundance_altPrey()
+  names(p.PreyN) <- c("Habitat_availability", "Low", "High")
+  head(p.PreyN)
+  write_csv(p.PreyN, "./Conditional_Probability_Tables/CPT_Abundance_altPrey.csv")
   
   #'  ------------------------
   #####  Abundance_predators  #####
   #'  ------------------------
-  #'  Predict probability of low, medium, or high abundances of predators (e.g., wolf, 
-  #'  mountain lion, bear) based on whether alternative prey populations are rare (0) 
+  #'  Predict probability of low vs high abundances of predators (e.g., wolf, 
+  #'  cougar, bear) based on whether alternative prey populations are rare (0) 
   #'  or abundant (1) and whether predator control does not (0) or does (1) occur
-  
+  Pred_abundance <- function(control, control.level) {
+    #'  Alternative prey abundance (low, or high) 
+    N.altPrey <- c(1, 2)
+    #'  Holding whether predator control occurs at a fixed level
+    Pred.control <- control
+    
+    #'  Define intercept and slope coefficients
+    #'  H: More alternative prey increases predator abundance but predator control
+    #'  efforts reduce predator abundance
+    alpha <- 4.75 # Intercept for low predator abundance
+    beta1 <- -3 # Slope for alternative prey effect
+    beta2 <- 0.95 # Slope for predator control effect
+    
+    #'  Calculate probability predator abundance will be low vs high given different
+    #'  levels of alternative prey sources (low or high) and whether predator 
+    #'  control occurs (yes or no)
+    (p.PrednLo <- 1/(1 + exp(-(alpha + beta1*N.altPrey + beta2*Pred.control))))
+    (p.PrednHi <- 1 - p.PrednLo)
+    
+    #'  Create data frame with probabilities of predator abundance being low or high
+    (p.Predn <- cbind(p.PrednLo, p.PrednHi))
+    #'  Add prey and predator control covariate data to data frame  
+    df <- data.frame(N.altPrey = N.altPrey, control = control.level, 
+                     p1 = p.PrednLo, p2 = p.PrednHi) %>%
+      mutate(N.altPrey = ifelse(N.altPrey == 1, "Low", "High"),
+             N.altPrey = factor(N.altPrey, levels = c("Low", "High")))
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-control) %>%
+      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+    
+    #'  Plot probability of predator abundance being low or high, given level
+    #'  of alterantive prey sources and predator control
+    prediction_plot <- ggplot(df_plot, aes(x = N.altPrey, y = prob)) + 
+      ylim(0, 1) +
+      geom_point(aes(color = p)) +
+      xlab("Alternative prey abundance")+
+      ylab("Prob(Predator abundance)")+
+      ggtitle(paste("Predator abundance", control.level, "predator control")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+                         values = c('red', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+    
+  }
+  #'  Calculate probability of predator abundance being low or high given level
+  #'  of alternative prey sources (low or high) and whether predator control
+  #'  occurs (yes or no)
+  p.PredN.noCon <- Pred_abundance(control = 0, control.level = "without")
+  p.PredN.wCon <- Pred_abundance(control = 1, control.level = "with")
+  p.PredN <- bind_rows(p.PredN.noCon, p.PredN.wCon) %>%
+    mutate(control = ifelse(control == "without", "No", control),
+           control = ifelse(control == "with", "Yes", control),
+           control = factor(control, levels = c("No", "Yes"))) %>%
+    arrange(N.altPrey, control) 
+  names(p.PredN) <- c("Habitat_availability", "Supplemental_feeding", "Low", "High")
+  head(p.PredN)
+  write_csv(p.PredN, "./Conditional_Probability_Tables/CPT_Abundance_predators.csv")
   
   #'  ------------------------
   #####  Survival_adultMales  #####
@@ -345,8 +459,8 @@
     #'  Plot probability of calf survival being low, medium, or high, given adult
     #'  female fecundity, predator abundance, and use of maternal penning
     prediction_plot <- ggplot(df_plot, aes(x = AF.fecundity, y = prob)) + 
-      ylim(0, 1)+
-      geom_point(aes(color = p)) +
+      ylim(0, 1) +
+      geom_point(aes(color = p), position = position_dodge(0.1)) +
       xlab("Adult female fecundity")+
       ylab("Prob(Calf survival)")+
       ggtitle(paste("Calf survival", pen.level, "maternal penning and predators are", pred.level)) +
@@ -430,7 +544,7 @@
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
       scale_color_manual(name = '', labels = c('Low N', 'High N'),
-                         values = c('red', 'blue', 'green'))
+                         values = c('red', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
@@ -501,7 +615,7 @@
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
       scale_color_manual(name = '', labels = c('Low N', 'High N'),
-                         values = c('red', 'blue', 'green'))
+                         values = c('red', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
