@@ -42,15 +42,94 @@
   #'  -------------------------
   #'  Predict probability of available habitat across range of binned areas based
   #'  on different levels of expected climate change scenarios
+  habitat <- function() {
+    #'  Climate change scenarios
+    climate <- c(1, 2, 3)
+    
+    #'  Define intercept and slope coefficients
+    #'  H: The hotter the climate, the less suitable habitat will be available
+    alpha <- c(0.1, 0.75, 1.5, 2, 2.75, 3.5, 4, 4.5, 5) # Intercepts for low probability of being in each bin
+    beta1 <- -0.5 # Slope for climate effect
+    
+    #'  Calculate probability of habitat availability being in each size bin given
+    #'  climate change scenarios (bad, worse, and we fucked)
+    (p.hab.0.50 <- 1/(1 + exp(-(alpha[1] + beta1*climate))))
+    (p.hab.0.100 <- 1/(1 + exp(-(alpha[2] + beta1*climate))))
+    (p.hab.0.150 <- 1/(1 + exp(-(alpha[3] + beta1*climate))))
+    (p.hab.0.200 <- 1/(1 + exp(-(alpha[4] + beta1*climate))))
+    (p.hab.0.250 <- 1/(1 + exp(-(alpha[5] + beta1*climate))))
+    (p.hab.0.300 <- 1/(1 + exp(-(alpha[6] + beta1*climate))))
+    (p.hab.0.350 <- 1/(1 + exp(-(alpha[7] + beta1*climate))))
+    (p.hab.0.400 <- 1/(1 + exp(-(alpha[8] + beta1*climate))))
+    (p.hab.0.450 <- 1/(1 + exp(-(alpha[9] + beta1*climate))))
+    (p.hab.50.100 <- p.hab.0.100 - p.hab.0.50)
+    (p.hab.100.150 <- p.hab.0.150 - p.hab.0.100)
+    (p.hab.150.200 <- p.hab.0.200 - p.hab.0.150)
+    (p.hab.200.250 <- p.hab.0.250 - p.hab.0.200)
+    (p.hab.250.300 <- p.hab.0.300 - p.hab.0.250)
+    (p.hab.300.350 <- p.hab.0.350 - p.hab.0.300)
+    (p.hab.350.400 <- p.hab.0.400 - p.hab.0.350)
+    (p.hab.400.450 <- p.hab.0.450 - p.hab.0.400)
+    (p.hab.450.500 <- 1 - p.hab.0.450)
+    
+    #'  Create data frame with probabilities of prey abundance being low or high
+    (p.hab <- cbind(p.hab.0.50, p.hab.50.100, p.hab.100.150, p.hab.150.200, p.hab.200.250, 
+                    p.hab.250.300, p.hab.300.350, p.hab.350.400, p.hab.400.450, p.hab.450.500)) 
+      
+    #'  Add climate change covariate data to data frame
+    (df <- data.frame(climate.scenario = climate, p1 = p.hab.0.50, p2 = p.hab.50.100, 
+                      p3 = p.hab.100.150, p4 = p.hab.150.200, p5 = p.hab.200.250, 
+                      p6 = p.hab.250.300, p7 = p.hab.300.350, p8 = p.hab.350.400, 
+                      p9 = p.hab.400.450, p10 = p.hab.450.500) %>%
+      mutate(climate.scenario = ifelse(climate.scenario == 1, "Bad", climate.scenario),
+             climate.scenario = ifelse(climate.scenario == 2, "Worse", climate.scenario),
+             climate.scenario = ifelse(climate.scenario == 3, "We fucked", climate.scenario),
+             sum_to_one = rowSums(across(where(is.numeric)))))
+    #'  Habitat availability (amount of suitable habitat in sq-km)
+    habitat.avail <- seq(50, 500, by = 50)
+    habitat <- rep(habitat.avail, 3)
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-sum_to_one) %>%
+      pivot_longer(cols = c('p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'), 
+                                   names_to = "p", values_to = "prob") %>%
+      bind_cols(habitat) 
+    names(df_plot) <- c("climate.scenario", "p", "prob", "habitat.bin")
+    
+    #'  Plot probability of prey abundance being low or high, given level
+    #'  of available habitat
+    prediction_plot <- ggplot(df_plot, aes(x = habitat.bin, y = prob, group = climate.scenario)) + 
+      ylim(0, 1) +
+      geom_line(aes(color = climate.scenario)) +
+      geom_point(aes(color = climate.scenario)) +
+      xlab("Habitat availability bin")+
+      ylab("Prob(Habitat availability bin)")+
+      ggtitle(paste("Probability of being in each habitat bin given each climate scenario")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) 
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  p.habitat <- habitat()
+  names(p.habitat) <- c("Habitat_availability", "0 to 50", "50 to 100", "100 to 150",
+                        "150 to 200", "200 to 250", "250 to 300", "300 to 350",
+                        "350 to 400", "400 to 450", "450 to 500", "sum_to_one")
+  head(p.habitat)
+  write_csv(p.habitat, "./Conditional_Probability_Tables/CPT_Habitat_availability.csv")
   
   #'  ----------------------
   #####  Abundance_altPrey  #####
   #'  ----------------------
   #'  Predict probability of low, medium, or high abundances of alternative prey
   #'  sources (e.g., deer, elk, moose) under varying levels of habitat availability
-  Abundance_altPrey <- function() {
+  Prey_abundance <- function() {
     #'  Habitat availability (amount of suitable habitat in sq-km)
-    habitat.avail <- seq(0, 500, by = 50)
+    habitat.avail <- seq(50, 500, by = 50)
     #'  Center and scale habitat.avail so values don't range too widely
     habitat.availz <- scale(habitat.avail)
     
@@ -94,7 +173,7 @@
     return(df)
     
   }
-  p.PreyN <- Abundance_altPrey()
+  p.PreyN <- Prey_abundance()
   names(p.PreyN) <- c("Habitat_availability", "Low", "High")
   head(p.PreyN)
   write_csv(p.PreyN, "./Conditional_Probability_Tables/CPT_Abundance_altPrey.csv")
@@ -179,7 +258,7 @@
   #'  feeding occurs (yes or no) over a range of available suitable habitat
   AM_survival <- function(N.pred, Feeding, pred.level, feed.level) {   
     #'  Habitat availability (amount of suitable habitat in sq-km)
-    habitat.avail <- seq(0, 500, by = 50)
+    habitat.avail <- seq(50, 500, by = 50)
     #'  Center and scale habitat.avail so values don't range too widely
     habitat.availz <- scale(habitat.avail)
     #'  Holding Abundance_predators at a fixed level 
@@ -262,7 +341,7 @@
   #'  feeding occurs (yes or no) over a range of available suitable habitat
   AF_survival <- function(N.pred, Feeding, pred.level, feed.level) {   
     #'  Habitat availability (amount of suitable habitat in sq-km)
-    habitat.avail <- seq(0, 500, by = 50)
+    habitat.avail <- seq(50, 500, by = 50)
     #'  Center and scale habitat.avail so values don't range too widely
     habitat.availz <- scale(habitat.avail)
     #'  Holding Abundance_predators at a fixed level 
@@ -345,7 +424,7 @@
   #'  suitable habitat
   AF_fecundity <- function(Feeding, feed.level) {   
     #'  Habitat availability (amount of suitable habitat in sq-km)
-    habitat.avail <- seq(0, 500, by = 50)
+    habitat.avail <- seq(50, 500, by = 50)
     #'  Center and scale habitat.avail so values don't range too widely
     habitat.availz <- scale(habitat.avail)
     #'  Holding Supplemental feeding at a fixed level
