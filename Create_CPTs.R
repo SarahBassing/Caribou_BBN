@@ -183,8 +183,8 @@
   #####  Abundance_predators  #####
   #'  ------------------------
   #'  Predict probability of low vs high abundances of predators (e.g., wolf, 
-  #'  cougar, bear) based on whether alternative prey populations are rare (0) 
-  #'  or abundant (1) and whether predator control does not (0) or does (1) occur
+  #'  cougar, bear) based on whether alternative prey populations are rare (1) 
+  #'  or abundant (2) and whether predator control does not (0) or does (1) occur
   Pred_abundance <- function(control, control.level) {
     #'  Alternative prey abundance (low, or high) 
     N.altPrey <- c(1, 2)
@@ -216,7 +216,7 @@
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
     
     #'  Plot probability of predator abundance being low or high, given level
-    #'  of alterantive prey sources and predator control
+    #'  of alternative prey sources and predator control
     prediction_plot <- ggplot(df_plot, aes(x = N.altPrey, y = prob)) + 
       ylim(0, 1) +
       geom_point(aes(color = p)) +
@@ -246,7 +246,7 @@
            control = ifelse(control == "with", "Yes", control),
            control = factor(control, levels = c("No", "Yes"))) %>%
     arrange(N.altPrey, control) 
-  names(p.PredN) <- c("Habitat_availability", "Supplemental_feeding", "Low", "High")
+  names(p.PredN) <- c("Habitat_availability", "Predator_control", "Low", "High")
   head(p.PredN)
   write_csv(p.PredN, "./Conditional_Probability_Tables/CPT_Abundance_predators.csv")
   
@@ -733,7 +733,7 @@
     (p.ImmnLo <- p.ImmnNoLo - p.ImmnNo)
     (p.ImmnMod <- 1 - p.ImmnNoLo)
     
-    #'  Create data frame with probabilities of natural immigration being zero, low or moderate
+    #'  Create data frame with probabilities of natural immigration being none, low, or moderate
     (p.Immn <- cbind(p.ImmnNo, p.ImmnLo, p.ImmnMod))
     #'  Add source population covariate data to data frame
     df <- data.frame(N.sourcePop = N.sourcePop, p1 = p.ImmnNo, p2 = p.ImmnLo, p3 = p.ImmnMod) %>%
@@ -742,7 +742,7 @@
     df_plot <- df %>% dplyr::select(-sum_to_one) %>% 
       pivot_longer(cols = c('p1','p2', 'p3'), names_to = "p", values_to = "prob")
     
-    #'  Plot probability of prey abundance being low or high, given level
+    #'  Plot probability of natural immigration being low or high, given level
     #'  of available habitat
     prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
       ylim(0, 1) +
@@ -857,8 +857,8 @@
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-Captive.breeding) %>%
       pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
-    #'  Plot probability of adult male population being low or high, given adult
-    #'  male survival is low, moderate, or high, across a range of source population sizes
+    #'  Plot probability of augmentation being none, low,  or high, given source 
+    #'  population size and whether captive breeding occurs 
     prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
       ylim(0, 1)+
       geom_line(aes(color = p)) +
@@ -916,7 +916,7 @@
     #'  Probability of being in high abundance category given all of the above
     (p.AnHi <- 1 - (p.AnLo))
     
-    #'  Create data frame with probabilities of calf survival being low, medium, or high
+    #'  Create data frame with probabilities of adult abundance being low or high
     (p.AN <- cbind(p.AnLo, p.AnHi))
     #'  Add covariate data to data frame  
     df <- data.frame(Immigration = immigration, Abundance_AM = AM.level, Abundance_AF = AF.level, 
@@ -928,8 +928,8 @@
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-c(Abundance_AM, Abundance_AF)) %>%
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
-    #'  Plot probability of calf survival being low, medium, or high, given adult
-    #'  female fecundity, predator abundance, and use of maternal penning
+    #'  Plot probability of adult abundance being low or high given abundance
+    #'  of adult males, adult females, and natural immigration
     prediction_plot <- ggplot(df_plot, aes(x = Immigration, y = prob)) + 
       ylim(0, 1) +
       geom_point(aes(color = p), position = position_dodge(0.1)) +
@@ -949,8 +949,8 @@
     #'  Return predictions
     return(df)
   }
-  #'  Calculate probability of adult female fecundity being low, medium, or high given 
-  #'  supplemental feeding does not (0) or does (1) occur
+  #'  Calculate probability of adult abundance being low or high given adult male
+  #'  abundance, adult female abundance, and natural immigration
   p.AN.AMLo.AFLo <- A_abundance(AM.n = 0, AF.n = 0, AM.level = "rare", AF.level = "rare")
   p.AN.AMLo.AFHi <- A_abundance(AM.n = 0, AF.n = 1, AM.level = "rare", AF.level = "abundant")
   p.AN.AMHi.AFLo <- A_abundance(AM.n = 1, AF.n = 0, AM.level = "abundant", AF.level = "rare")
@@ -1001,8 +1001,8 @@
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-Abundance_AF) %>%
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
-    #'  Plot probability of calf abundance being low or high, given adult
-    #'  female fecundity, predator abundance, and use of maternal penning
+    #'  Plot probability of calf abundance being low or high given adult female 
+    #'  abundance and calf survival
     prediction_plot <- ggplot(df_plot, aes(x = Survival_calf, y = prob)) + 
       ylim(0, 1) +
       geom_point(aes(color = p), position = position_dodge(0.1)) +
@@ -1022,8 +1022,8 @@
     #'  Return predictions
     return(df)
   }
-  #'  Calculate probability of adult female fecundity being low, medium, or high given 
-  #'  supplemental feeding does not (0) or does (1) occur
+  #'  Calculate probability of calf abundance being low vs high given calf
+  #'  survival and adult female abundance
   p.YoYn.AFLo <- C_abundance(AF.n = 0, AF.level = "rare")
   p.YoYn.AFHi <- C_abundance(AF.n = 1, AF.level = "abundant")
   p.YoYn <- bind_rows(p.YoYn.AFLo, p.YoYn.AFHi) %>%
@@ -1048,10 +1048,10 @@
     
     #'  Define intercept and slope coefficients 
     #'  H: Adult abundance has largest effect, then calf abundance, then augmentation 
-    alpha <- c(5) # Intercept for low total abundance category
-    beta1 <- 0 #'  Slope coefficient for augmentation
-    beta2 <- 0 # Slope coefficient for adult abundance
-    beta3 <- 0 # Slope coefficient for calf abundance
+    alpha <- 5 # Intercept for low total abundance category
+    beta1 <- -1 #'  Slope coefficient for augmentation
+    beta2 <- -4.5 # Slope coefficient for adult abundance
+    beta3 <- -1.5 # Slope coefficient for calf abundance
     
     #'  Calculate probability of total abundance being low given different levels 
     #'  of adult abundance, calf abundance, and augmentation probabilities
@@ -1059,7 +1059,7 @@
     #'  Probability of being in high abundance category given all of the above
     (p.nHi <- 1 - (p.nLo))
     
-    #'  Create data frame with probabilities of calf abundance being low or high
+    #'  Create data frame with probabilities of total abundance being low or high
     (p.N <- cbind(p.nLo, p.nHi))
     #'  Add covariate data to data frame  
     df <- data.frame(Augment = augment, Abundance_A = A.level, Abundance_C = YoY.level,
@@ -1093,8 +1093,8 @@
     #'  Return predictions
     return(df)
   }
-  #'  Calculate probability of adult female fecundity being low, medium, or high given 
-  #'  supplemental feeding does not (0) or does (1) occur
+  #'  Calculate probability of total abundance given adult and calf abundances as
+  #'  well as augmentation
   p.n.ALo.CLo <- Total_abundance(A.n = 0, YoY.n = 0, A.level = "low", YoY.level = "low")
   p.n.ALo.CHi <- Total_abundance(A.n = 0, YoY.n = 1, A.level = "low", YoY.level = "high")
   p.n.AHi.CLo <- Total_abundance(A.n = 1, YoY.n = 0, A.level = "high", YoY.level = "low")
@@ -1115,9 +1115,90 @@
   #'  Probability of population growth decreasing, remaining stable, or increasing
   #'  given the size of the caribou population
   
+  
   #####  ProbSuccess  #####
   #'  Probability of reintroduction success given whether the population is most 
   #'  likely to be decreasing, stable, or increasing
+  PrSuccess <- function() {
+    #'  Lambda categories (1 = decreasing, 2 = stable, 3 = increasing)
+    lambda <- c(1, 2, 3)
+    
+    #'  Define intercept and slope coefficients
+    #'  H: increasing lambda leads to highest success probability, stable lambda
+    #'  is less successful, and decreasing lambda is failure
+    alpha <- c(3, 4, 5, 6, 7, 8, 9, 10, 11) # Intercepts for low probability of being in each bin 
+    beta1 <- -3.5 # -4 # Slope for lambda categories
+    
+    #'  Calculate probability of success given different lambda categories
+    (p.lambda.0.1 <- 1/(1 + exp(-(alpha[1] + beta1*lambda)))) 
+    (p.lambda.0.2 <- 1/(1 + exp(-(alpha[2] + beta1*lambda))))
+    (p.lambda.0.3 <- 1/(1 + exp(-(alpha[3] + beta1*lambda))))
+    (p.lambda.0.4 <- 1/(1 + exp(-(alpha[4] + beta1*lambda))))
+    (p.lambda.0.5 <- 1/(1 + exp(-(alpha[5] + beta1*lambda))))
+    (p.lambda.0.6 <- 1/(1 + exp(-(alpha[6] + beta1*lambda))))
+    (p.lambda.0.7 <- 1/(1 + exp(-(alpha[7] + beta1*lambda))))
+    (p.lambda.0.8 <- 1/(1 + exp(-(alpha[8] + beta1*lambda))))
+    (p.lambda.0.9 <- 1/(1 + exp(-(alpha[9] + beta1*lambda))))
+    (p.lambda.1.2 <- p.lambda.0.2 - p.lambda.0.1)
+    (p.lambda.2.3 <- p.lambda.0.3 - p.lambda.0.2)
+    (p.lambda.3.4 <- p.lambda.0.4 - p.lambda.0.3)
+    (p.lambda.4.5 <- p.lambda.0.5 - p.lambda.0.4)
+    (p.lambda.5.6 <- p.lambda.0.6 - p.lambda.0.5)
+    (p.lambda.6.7 <- p.lambda.0.7 - p.lambda.0.6)
+    (p.lambda.7.8 <- p.lambda.0.8 - p.lambda.0.7)
+    (p.lambda.8.9 <- p.lambda.0.9 - p.lambda.0.8)
+    (p.lambda.9.10 <- 1 - p.lambda.0.9)
+    
+    #'  Create data frame with probabilities of prey abundance being low or high
+    (p.hab <- cbind(p.lambda.0.1, p.lambda.1.2, p.lambda.2.3, p.lambda.3.4, p.lambda.4.5, 
+                    p.lambda.5.6, p.lambda.6.7, p.lambda.7.8, p.lambda.8.9, p.lambda.9.10)) 
+    
+    #'  Add climate change covariate data to data frame
+    (df <- data.frame(lambda = lambda, p1 = p.lambda.0.1, p2 = p.lambda.1.2, 
+                      p3 = p.lambda.2.3, p4 = p.lambda.3.4, p5 = p.lambda.4.5, 
+                      p6 = p.lambda.5.6, p7 = p.lambda.6.7, p8 = p.lambda.7.8, 
+                      p9 = p.lambda.8.9, p10 = p.lambda.9.10) %>%
+        mutate(lambda = ifelse(lambda == 1, "Decreasing", lambda),
+               lambda = ifelse(lambda == 2, "Stable", lambda),
+               lambda = ifelse(lambda == 3, "Increasing", lambda),
+               lambda = factor(lambda, levels = c("Decreasing", "Stable", "Increasing")),
+               sum_to_one = rowSums(across(where(is.numeric)))))
+    #'  Lambda values
+    lambda.val <- seq(0.1, 1, by = 0.1)
+    lambda <- rep(lambda.val, 3)
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-sum_to_one) %>%
+      pivot_longer(cols = c('p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'), 
+                   names_to = "p", values_to = "prob") %>%
+      bind_cols(lambda) 
+    names(df_plot) <- c("lambda.scenario", "p", "prob", "Success")
+    
+    #'  Plot probability of prey abundance being low or high, given level
+    #'  of available habitat
+    prediction_plot <- ggplot(df_plot, aes(x = Success, y = prob, group = lambda.scenario)) + 
+      ylim(0, 1) +
+      geom_line(aes(color = lambda.scenario)) +
+      geom_point(aes(color = lambda.scenario)) +
+      xlab("Success bin")+
+      ylab("Prob(Success bin)")+
+      ggtitle(paste("Probability of success given each lambda scenario")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) 
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  p.PrSuccess <- PrSuccess()
+  names(p.PrSuccess) <- c("Lambda", "0 to 0.1", "0.1 to 0.2", "0.2 to 0.3",
+                        "0.3 to 0.4", "0.4 to 0.5", "0.5 to 0.6", "0.6 to 0.7", 
+                        "0.7 to 0.8","0.8 to 0.9", "0.9 to 1", "sum_to_one")
+  head(p.PrSuccess)
+  write_csv(p.PrSuccess, "./Conditional_Probability_Tables/CPT_ProbSuccess.csv")
   
   #####  Utility  #####
   #'  How much utility do we get out of the decision given the probability of success?
