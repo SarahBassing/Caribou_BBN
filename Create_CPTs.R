@@ -43,17 +43,17 @@
   #'  Predict probability of available habitat across range of binned areas based
   #'  on different levels of expected climate change scenarios
   habitat <- function() {
-    #'  Climate change scenarios
+    #'  Climate scenarios (1 = bad, 2 = worse, 3 = we fucked)
     climate <- c(1, 2, 3)
     
     #'  Define intercept and slope coefficients
     #'  H: The hotter the climate, the less suitable habitat will be available
-    alpha <- c(0.1, 0.75, 1.5, 2, 2.75, 3.5, 4, 4.5, 5) # Intercepts for low probability of being in each bin
-    beta1 <- -0.5 # Slope for climate effect
+    alpha <- c(-6, -5, -4, -3, -2, -1, 0, 1, 2) # Intercepts for low probability of being in each bin c(-5, -4, -3, -2, -1, 0, 1, 2, 3) making more negative shifts peak/slope of scenarios right
+    beta1 <- 2.5 # Slope for climate effect scenario (increase beta1 to increase diff btwn scenarios)
     
     #'  Calculate probability of habitat availability being in each size bin given
     #'  climate change scenarios (bad, worse, and we fucked)
-    (p.hab.0.50 <- 1/(1 + exp(-(alpha[1] + beta1*climate))))
+    (p.hab.0.50 <- 1/(1 + exp(-(alpha[1] + beta1*climate)))) # + beta2*climate + beta3*climate
     (p.hab.0.100 <- 1/(1 + exp(-(alpha[2] + beta1*climate))))
     (p.hab.0.150 <- 1/(1 + exp(-(alpha[3] + beta1*climate))))
     (p.hab.0.200 <- 1/(1 + exp(-(alpha[4] + beta1*climate))))
@@ -84,6 +84,7 @@
       mutate(climate.scenario = ifelse(climate.scenario == 1, "Bad", climate.scenario),
              climate.scenario = ifelse(climate.scenario == 2, "Worse", climate.scenario),
              climate.scenario = ifelse(climate.scenario == 3, "We fucked", climate.scenario),
+             climate.scenario = factor(climate.scenario, levels = c("Bad", "Worse", "We fucked")),
              sum_to_one = rowSums(across(where(is.numeric)))))
     #'  Habitat availability (amount of suitable habitat in sq-km)
     habitat.avail <- seq(50, 500, by = 50)
@@ -93,6 +94,7 @@
       pivot_longer(cols = c('p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'), 
                                    names_to = "p", values_to = "prob") %>%
       bind_cols(habitat) 
+      # bind_cols(habitat.avail) 
     names(df_plot) <- c("climate.scenario", "p", "prob", "habitat.bin")
     
     #'  Plot probability of prey abundance being low or high, given level
@@ -156,7 +158,7 @@
     prediction_plot <- ggplot(df_plot, aes(x = habitat.avail, y = prob)) + 
       ylim(0, 1) +
       geom_line(aes(color = p)) +
-      xlab("Habitat suitability (sq-km)")+
+      xlab("Habitat availability (sq-km)")+
       ylab("Prob(Prey abundance)")+
       ggtitle(paste("Prey abundance over varying levels of habitat availability")) +
       theme(
@@ -171,7 +173,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   p.PreyN <- Prey_abundance()
   names(p.PreyN) <- c("Habitat_availability", "Low", "High")
@@ -227,14 +228,13 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low predator N', 'High predator N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of predator abundance being low or high given level
   #'  of alternative prey sources (low or high) and whether predator control
@@ -313,7 +313,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of adult male survival being low, moderate, or high given 
   #'  predators are rare (1) or abundant (2) and feeding does not (0) or does (1) occur
@@ -396,7 +395,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of adult female survival being low, medium, or high given 
   #'  predators are rare (1) or abundant (2) and feeding does not (0) or does (1) occur
@@ -475,7 +473,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of adult female fecundity being low, medium, or high given 
   #'  supplemental feeding does not (0) or does (1) occur
@@ -555,7 +552,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of adult female fecundity being low, medium, or high given 
   #'  supplemental feeding does not (0) or does (1) occur
@@ -629,7 +625,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of adult male abundance being low or high given 
   #'  adult male survival is low (1), moderate (2), or high (3)
@@ -700,7 +695,6 @@
     plot(prediction_plot)
     #'  Return predictions
     return(df)
-    
   }
   #'  Calculate probability of adult male abundance being low or high given 
   #'  adult male survival is low (1), moderate (2), or high (3)
@@ -719,14 +713,414 @@
   
   
   #####  Natural immigration  #####
-  #####  Abundance_adults  #####
-  #####  Abundance_calves  #####
-  #####  Abundance_caribou  #####
-  #####  Abundance_adultAugmentation  #####
-  #####  Lambda  #####
-  #####  ProbSuccess  #####
-  #####  Utility  #####
+  #'  Predict probability of no, low, or moderate natural immigration from BC 
+  #'  source populations to US under varying levels of source population
+  immigration <- function() {
+    #'  Population size of source population
+    N.sourcePop <- seq(10, 200, by = 20)
+    #'  Center and scale N.sourcePop so values don't range too widely
+    N.sourcePopz <- scale(N.sourcePop)
+    
+    #'  Define intercept and slope coefficients
+    #'  H: Size of source population increases level of natural immigration into US
+    alpha <- c(2.25, 5) # Intercept for NO immigration
+    beta1 <- -2 # Slope for source population effect
+    
+    #'  Calculate probability natural immigration will be none, low, or moderate 
+    #'  given varying sizes of the source population
+    (p.ImmnNo <- 1/(1 + exp(-(alpha[1] + beta1*N.sourcePopz))))
+    (p.ImmnNoLo <- 1/(1 + exp(-(alpha[2] + beta1*N.sourcePopz))))
+    (p.ImmnLo <- p.ImmnNoLo - p.ImmnNo)
+    (p.ImmnMod <- 1 - p.ImmnNoLo)
+    
+    #'  Create data frame with probabilities of natural immigration being zero, low or moderate
+    (p.Immn <- cbind(p.ImmnNo, p.ImmnLo, p.ImmnMod))
+    #'  Add source population covariate data to data frame
+    df <- data.frame(N.sourcePop = N.sourcePop, p1 = p.ImmnNo, p2 = p.ImmnLo, p3 = p.ImmnMod) %>%
+      mutate(sum_to_one = rowSums(.[2:4]))
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-sum_to_one) %>% 
+      pivot_longer(cols = c('p1','p2', 'p3'), names_to = "p", values_to = "prob")
+    
+    #'  Plot probability of prey abundance being low or high, given level
+    #'  of available habitat
+    prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
+      ylim(0, 1) +
+      geom_line(aes(color = p)) +
+      xlab("Source population abundance")+
+      ylab("Prob(Natural Immigration)")+
+      ggtitle(paste("Natural immigration over varying sizes of source population")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('No N', 'Low N', 'Mod N'),
+                         values = c('red', 'green', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  p.ImmN <- immigration()
+  names(p.ImmN) <- c("Abundance_sourcePop", "None", "Low", "Moderate", "sum_to_one")
+  head(p.ImmN)
+  write_csv(p.ImmN, "./Conditional_Probability_Tables/CPT_Natural_immigration.csv")  
   
+  #####  Captive_breeding  #####
+  #'  Probability of whether captive breeding occurs given the size of the source 
+  #'  population
+  cap_breeding <- function() {  
+    #'  Population size of source population
+    N.sourcePop <- seq(10, 200, by = 20)
+    #'  Center and scale N.sourcePop so values don't range too widely
+    N.sourcePopz <- scale(N.sourcePop)
+    
+    #'  Define intercept and slope coefficients
+    #'  Whether captive breeding occurs depends on size of the source population
+    alpha <- 0 # Intercept for No captive breeding
+    beta1 <- 2 # Slope coefficient for abundance of source population   
+    
+    #'  Calculate probability of adult male abundance being low vs high given 
+    #'  varying sizes of the source population and levels of adult male survival
+    (p.CapBreedNo <- 1/(1+exp(-(alpha + beta1*N.sourcePopz))))
+    #'  Probability of adult male abundance being high given low male survival over 
+    #'  a range of population sizes of the source population
+    p.CapBreedYes <- 1 - p.CapBreedNo
+    
+    #'  Create data frame with probabilities of adult male abundance being low vs high
+    (p.CapBreed <- cbind(p.CapBreedNo, p.CapBreedYes))
+    #'  Add source population covariate data to data frame and 
+    df <- data.frame(N.sourcePop = N.sourcePop, p1 = p.CapBreedNo, p2 = p.CapBreedYes) 
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% 
+      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+    #'  Plot probability of adult male population being low or high, given adult
+    #'  male survival is low, moderate, or high, across a range of source population sizes
+    prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
+      ylim(0, 1)+
+      geom_line(aes(color = p)) +
+      xlab("Source population size")+
+      ylab("Prob(Captive Breeding)")+
+      ggtitle(paste("Captive breeding depending on size of source population")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('No', 'Yes'),
+                         values = c('red', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  #'  Calculate probability of captive breeding given size of source population
+  p.CapBreed <- cap_breeding() 
+  names(p.CapBreed) <- c("Abundance_sourcePop", "No", "Yes")
+  head(p.CapBreed)
+  write_csv(p.CapBreed, "./Conditional_Probability_Tables/CPT_Captive_breeding.csv")
+  
+  #####  Abundance_adultAugmentation  #####
+  #'  Probability of augmenting caribou population with adults from the source
+  #'  population given size of source population and whether captive breeding occurs (No, Yes)
+  augment <- function(Cap.Breed, cap.level) {  
+    #'  Holding captive.breeding at a fixed value (No vs Yes)
+    captive.breeding <- Cap.Breed 
+    #'  Population size of source population
+    N.sourcePop <- seq(10, 200, by = 20)
+    #'  Center and scale N.sourcePop so values don't range too widely
+    N.sourcePopz <- scale(N.sourcePop)
+    
+    #'  Define intercept and slope coefficients 
+    #'  H: Augmentation will depend on size of source population and whether captive
+    #'  breeding occurs
+    alpha <- c(0, 1) # Intercept for no augmentation category
+    beta1 <- -1.5 # Slope coefficient for abundance of source population   
+    beta2 <- 0.75 # Slope coefficient for captive breeding
+    
+    #'  Calculate probability of augmenting population with adults from source
+    #'  population being none, low, or high given varying sizes of the source population 
+    #'  and whether captive breeding occurs (no vs yes)
+    (p.AugnNo <- 1/(1+exp(-(alpha[1] + beta1*N.sourcePopz + beta2*captive.breeding))))
+    (p.AugnNoLo <- 1/(1+exp(-(alpha[2] + beta1*N.sourcePopz + beta2*captive.breeding))))
+    (p.AugnLo <- p.AugnNoLo - p.AugnNo)
+    (p.AugnHi <- 1 - p.AugnNoLo)
+    
+    #'  Create data frame with probabilities of augmentation being none, low or high
+    (p.Augn <- cbind(p.AugnNo, p.AugnLo, p.AugnHi))
+    #'  Add source population and captive breeding covariate data to data frame and 
+    df <- data.frame(N.sourcePop = N.sourcePop, Captive.breeding = captive.breeding, 
+                     p1 = p.AugnNo, p2 = p.AugnLo, p3 = p.AugnHi) 
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-Captive.breeding) %>%
+      pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
+    #'  Plot probability of adult male population being low or high, given adult
+    #'  male survival is low, moderate, or high, across a range of source population sizes
+    prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
+      ylim(0, 1)+
+      geom_line(aes(color = p)) +
+      xlab("Source population size")+
+      ylab("Prob(Adult augmentation)")+
+      ggtitle(paste("Adult augementation when captive breeding", cap.level)) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('No N', 'Low N', 'High N'),
+                         values = c('red', 'green', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  #'  Calculate probability of adult augmentation given captive breeding and source
+  #'  population
+  p.Augn.BreedingN <- augment(Cap.Breed = 1, cap.level = "does not occur") 
+  p.Augn.BreedingY <- augment(Cap.Breed = 2, cap.level = "occurs")
+  p.Augn <- bind_rows(p.Augn.BreedingN, p.Augn.BreedingY) %>%
+    mutate(Captive.breeding = ifelse(Captive.breeding == 1, "No", Captive.breeding),
+           Captive.breeding = ifelse(Captive.breeding == 2, "Yes", Captive.breeding),
+           Captive.breeding = factor(Captive.breeding, levels = c("No", "Yes"))) %>%
+    arrange(N.sourcePop, Captive.breeding) 
+  names(p.Augn) <- c("Abundance_sourcePop", "Captive_breeding", "None", "Low", "High")
+  head(p.Augn)
+  write_csv(p.Augn, "./Conditional_Probability_Tables/CPT_Abundance_adultAugment.csv")
+  
+  #####  Abundance_adults  #####
+  #'  Probability of adult abundance being low or high given the level of adult 
+  #'  male and adult female abundances and level of natural immigration (none, low, moderate)
+  A_abundance <- function(AM.n, AF.n, AM.level, AF.level) {   
+    #'  Natural immigration
+    immigration <- c(1, 2, 3)
+    #'  Holding Abundance_adultMales at a fixed level (low vs high)
+    N.AM <- AM.n
+    #'  Holding Abundance_adultFemales at a fixed level (low vs high)
+    N.AF <- AF.n
+    
+    #'  Define intercept and slope coefficients 
+    #'  H: Adult abundance increases most with adult female abundance, then adult
+    #'  male abundance, and lastly it is supplemented with natural immigration
+    alpha <- c(5) # Intercept for low adult abundance category
+    beta1 <- -2 # Slope coefficient for adult male abundance
+    beta2 <- -4 # Slope coefficient for adult female abundance
+    beta3 <- -0.75 # Slope coefficient for natural immigration
+    
+    #'  Calculate probability of adult abundance being low given different levels 
+    #'  of adult male abundance, adult female abundance, and natural immigration
+    (p.AnLo <- 1/(1 + exp(-(alpha[1] + beta1*N.AM + beta2*N.AF + beta3*immigration))))
+    #'  Probability of being in high abundance category given all of the above
+    (p.AnHi <- 1 - (p.AnLo))
+    
+    #'  Create data frame with probabilities of calf survival being low, medium, or high
+    (p.AN <- cbind(p.AnLo, p.AnHi))
+    #'  Add covariate data to data frame  
+    df <- data.frame(Immigration = immigration, Abundance_AM = AM.level, Abundance_AF = AF.level, 
+                     p1 = p.AnLo, p2 = p.AnHi) %>%
+      mutate(Immigration = ifelse(Immigration == 1, "None", Immigration),
+             Immigration = ifelse(Immigration == 2, "Low", Immigration),
+             Immigration = ifelse(Immigration == 3, "Moderate", Immigration),
+             Immigration = factor(Immigration, levels = c("None", "Low", "Moderate")))
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-c(Abundance_AM, Abundance_AF)) %>%
+      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+    #'  Plot probability of calf survival being low, medium, or high, given adult
+    #'  female fecundity, predator abundance, and use of maternal penning
+    prediction_plot <- ggplot(df_plot, aes(x = Immigration, y = prob)) + 
+      ylim(0, 1) +
+      geom_point(aes(color = p), position = position_dodge(0.1)) +
+      xlab("Natural immigration")+
+      ylab("Prob(Adult abundance)")+
+      ggtitle(paste("Adult abundance when adult males are", AM.level, "and \nadult females are", AF.level)) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+                         values = c('red', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  #'  Calculate probability of adult female fecundity being low, medium, or high given 
+  #'  supplemental feeding does not (0) or does (1) occur
+  p.AN.AMLo.AFLo <- A_abundance(AM.n = 0, AF.n = 0, AM.level = "rare", AF.level = "rare")
+  p.AN.AMLo.AFHi <- A_abundance(AM.n = 0, AF.n = 1, AM.level = "rare", AF.level = "abundant")
+  p.AN.AMHi.AFLo <- A_abundance(AM.n = 1, AF.n = 0, AM.level = "abundant", AF.level = "rare")
+  p.AN.AMHi.AFHi <- A_abundance(AM.n = 1, AF.n = 1, AM.level = "abundant", AF.level = "abundant")
+  p.AN <- bind_rows(p.AN.AMLo.AFLo, p.AN.AMLo.AFHi, p.AN.AMHi.AFLo, p.AN.AMHi.AFHi) %>%
+    mutate(Abundance_AM = ifelse(Abundance_AM == "rare", "Low", Abundance_AM),
+           Abundance_AM = ifelse(Abundance_AM == "abundant", "High", Abundance_AM),
+           Abundance_AM = factor(Abundance_AM, levels = c("Low", "High")),
+           Abundance_AF = ifelse(Abundance_AF == "rare", "Low", Abundance_AF),
+           Abundance_AF = ifelse(Abundance_AF == "abundant", "High", Abundance_AF),
+           Abundance_AF = factor(Abundance_AF, levels = c("Low", "High"))) %>%
+    arrange(Immigration, Abundance_AM, Abundance_AF) 
+  names(p.AN) <- c("Natural_immigration", "Abundance_adultMales", "Abundance_adultFemales", "Low", "High")
+  head(p.AN)
+  write_csv(p.AN, "./Conditional_Probability_Tables/CPT_Abundance_adults.csv")
+  
+  
+  #####  Abundance_calves  #####
+  #'  Probability of calf abundance being low or high given the level of adult 
+  #'  female abundance and level calf survival (low, medium, or high)
+  C_abundance <- function(AF.n, AF.level) {   
+    #'  Calf survival categories
+    phi <- c(1, 2, 3)
+    #'  Holding Abundance_adultFemales at a fixed level (low vs high)
+    N.AF <- AF.n
+    
+    #'  Define intercept and slope coefficients 
+    #'  H: Calf survival influences calf abundance more than adult female abundance 
+    alpha <- c(5) # Intercept for low calf abundance category
+    beta1 <- -2 # Slope coefficient for calf survival
+    beta2 <- -0.75 # Slope coefficient for adult female abundance
+    
+    #'  Calculate probability of calf abundance being low given different levels 
+    #'  of adult female abundance and calf survival probabilities
+    (p.YoYnLo <- 1/(1 + exp(-(alpha[1] + beta1*phi + beta2*N.AF))))
+    #'  Probability of being in high abundance category given all of the above
+    (p.YoYnHi <- 1 - (p.YoYnLo))
+    
+    #'  Create data frame with probabilities of calf abundance being low or high
+    (p.YoYN <- cbind(p.YoYnLo, p.YoYnHi))
+    #'  Add covariate data to data frame  
+    df <- data.frame(Survival_calf = phi, Abundance_AF = AF.level, 
+                     p1 = p.YoYnLo, p2 = p.YoYnHi) %>%
+      mutate(Survival_calf = ifelse(Survival_calf == 1, "Low", Survival_calf),
+             Survival_calf = ifelse(Survival_calf == 2, "Moderate", Survival_calf),
+             Survival_calf = ifelse(Survival_calf == 3, "High", Survival_calf),
+             Survival_calf = factor(Survival_calf, levels = c("Low", "Moderate", "High")))
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-Abundance_AF) %>%
+      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+    #'  Plot probability of calf abundance being low or high, given adult
+    #'  female fecundity, predator abundance, and use of maternal penning
+    prediction_plot <- ggplot(df_plot, aes(x = Survival_calf, y = prob)) + 
+      ylim(0, 1) +
+      geom_point(aes(color = p), position = position_dodge(0.1)) +
+      xlab("Calf survival")+
+      ylab("Prob(Calf abundance)")+
+      ggtitle(paste("Calf abundance over varying levels of calf survival when \nadult females are", AF.level)) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+                         values = c('red', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  #'  Calculate probability of adult female fecundity being low, medium, or high given 
+  #'  supplemental feeding does not (0) or does (1) occur
+  p.YoYn.AFLo <- C_abundance(AF.n = 0, AF.level = "rare")
+  p.YoYn.AFHi <- C_abundance(AF.n = 1, AF.level = "abundant")
+  p.YoYn <- bind_rows(p.YoYn.AFLo, p.YoYn.AFHi) %>%
+    mutate(Abundance_AF = ifelse(Abundance_AF == "rare", "Low", Abundance_AF),
+           Abundance_AF = ifelse(Abundance_AF == "abundant", "High", Abundance_AF),
+           Abundance_AF = factor(Abundance_AF, levels = c("Low", "High"))) %>%
+    arrange(Survival_calf, Abundance_AF) 
+  names(p.YoYn) <- c("Survival_calf", "Abundance_adultFemales", "Low", "High")
+  head(p.YoYn)
+  write_csv(p.YoYn, "./Conditional_Probability_Tables/CPT_Abundance_calves.csv")
+  
+  #####  Abundance_caribou  #####
+  #'  Probability of caribou abundance being low or high given the level of adult 
+  #'  abundance, calf abundance, and level of augmentation
+  Total_abundance <- function(A.n, YoY.n, A.level, YoY.level) {   
+    #'  Augmentation categories
+    augment <- c(1, 2, 3)
+    #'  Holding Abundance_adultFemales at a fixed level (low vs high)
+    N.A <- A.n
+    #'  Holding Abundance_calves at a fixed level (low vs high)
+    N.C <- YoY.n
+    
+    #'  Define intercept and slope coefficients 
+    #'  H: Adult abundance has largest effect, then calf abundance, then augmentation 
+    alpha <- c(5) # Intercept for low total abundance category
+    beta1 <- 0 #'  Slope coefficient for augmentation
+    beta2 <- 0 # Slope coefficient for adult abundance
+    beta3 <- 0 # Slope coefficient for calf abundance
+    
+    #'  Calculate probability of total abundance being low given different levels 
+    #'  of adult abundance, calf abundance, and augmentation probabilities
+    (p.nLo <- 1/(1 + exp(-(alpha[1] + beta1*augment + beta2*N.A + beta3*N.C))))
+    #'  Probability of being in high abundance category given all of the above
+    (p.nHi <- 1 - (p.nLo))
+    
+    #'  Create data frame with probabilities of calf abundance being low or high
+    (p.N <- cbind(p.nLo, p.nHi))
+    #'  Add covariate data to data frame  
+    df <- data.frame(Augment = augment, Abundance_A = A.level, Abundance_C = YoY.level,
+                     p1 = p.nLo, p2 = p.nHi) %>%
+      mutate(Augment = ifelse(Augment == 1, "None", Augment),
+             Augment = ifelse(Augment == 2, "Low", Augment),
+             Augment = ifelse(Augment == 3, "High", Augment),
+             Augment = factor(Augment, levels = c("None", "Low", "High")))
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-c(Abundance_A, Abundance_C)) %>%
+      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+    #'  Plot probability of total abundance being low or high, given adult
+    #'  abundance, calf abundance, and augmentation
+    prediction_plot <- ggplot(df_plot, aes(x = Augment, y = prob)) + 
+      ylim(0, 1) +
+      geom_point(aes(color = p), position = position_dodge(0.1)) +
+      xlab("Augmentation")+
+      ylab("Prob(Total abundance)")+
+      ggtitle(paste("Caribou abundance over varying levels of augementation when 
+                    \nadult N is", A.level, "and calf N is", YoY.level)) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+                         values = c('red', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  #'  Calculate probability of adult female fecundity being low, medium, or high given 
+  #'  supplemental feeding does not (0) or does (1) occur
+  p.n.ALo.CLo <- Total_abundance(A.n = 0, YoY.n = 0, A.level = "low", YoY.level = "low")
+  p.n.ALo.CHi <- Total_abundance(A.n = 0, YoY.n = 1, A.level = "low", YoY.level = "high")
+  p.n.AHi.CLo <- Total_abundance(A.n = 1, YoY.n = 0, A.level = "high", YoY.level = "low")
+  p.n.AHi.CHi <- Total_abundance(A.n = 1, YoY.n = 1, A.level = "high", YoY.level = "high")
+  p.N <- bind_rows(p.n.ALo.CLo, p.n.ALo.CHi, p.n.AHi.CLo, p.n.AHi.CHi) %>%
+    mutate(Abundance_A = ifelse(Abundance_A == "low", "Low", Abundance_A),
+           Abundance_A = ifelse(Abundance_A == "high", "High", Abundance_A),
+           Abundance_A = factor(Abundance_A, levels = c("Low", "High")),
+           Abundance_C = ifelse(Abundance_C == "low", "Low", Abundance_C),
+           Abundance_C = ifelse(Abundance_C == "high", "High", Abundance_C),
+           Abundance_C = factor(Abundance_C, levels = c("Low", "High"))) %>%
+    arrange(Augment, Abundance_A, Abundance_C) 
+  names(p.N) <- c("Abundance_adultAugmentation", "Abundance_adults", "Abundance_calves", "Low", "High")
+  head(p.N)
+  write_csv(p.N, "./Conditional_Probability_Tables/CPT_Abundance_caribou.csv")
+  
+  #####  Lambda  #####
+  #'  Probability of population growth decreasing, remaining stable, or increasing
+  #'  given the size of the caribou population
+  
+  #####  ProbSuccess  #####
+  #'  Probability of reintroduction success given whether the population is most 
+  #'  likely to be decreasing, stable, or increasing
+  
+  #####  Utility  #####
+  #'  How much utility do we get out of the decision given the probability of success?
   
   
   
