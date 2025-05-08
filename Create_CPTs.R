@@ -166,7 +166,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low prey N', 'High prey N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
@@ -246,7 +246,7 @@
            control = ifelse(control == "with", "Yes", control),
            control = factor(control, levels = c("No", "Yes"))) %>%
     arrange(N.altPrey, control) 
-  names(p.PredN) <- c("Habitat_availability", "Predator_control", "Low", "High")
+  names(p.PredN) <- c("Abundance_altPrey", "Predator_control", "Low", "High")
   head(p.PredN)
   write_csv(p.PredN, "./Conditional_Probability_Tables/CPT_Abundance_predators.csv")
   
@@ -306,7 +306,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low phi', 'Moderate phi', 'High phi'),
+      scale_color_manual(name = '', labels = c('Low AM phi', 'Moderate AM phi', 'High AM phi'),
                          values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
@@ -328,7 +328,7 @@
            food = ifelse(food == "with", "Yes", food),
            food = factor(food, levels = c("No", "Yes"))) %>%
     arrange(habitat.avail, pred, food) 
-  names(p.AMphi) <- c("Habitat_availability", "Aubdance_predators", "Supplemental_feeding", "Low", "Medium", "High")
+  names(p.AMphi) <- c("Habitat_availability", "Abundance_predators", "Supplemental_feeding", "Low", "Medium", "High")
   head(p.AMphi)
   write_csv(p.AMphi, "./Conditional_Probability_Tables/CPT_Survival_adultMales.csv")
   
@@ -388,7 +388,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low phi', 'Moderate phi', 'High phi'),
+      scale_color_manual(name = '', labels = c('Low AF phi', 'Moderate AF phi', 'High AF phi'),
                          values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
@@ -410,7 +410,7 @@
            food = ifelse(food == "with", "Yes", food),
            food = factor(food, levels = c("No", "Yes"))) %>%
     arrange(habitat.avail, pred, food) 
-  names(p.AFphi) <- c("Habitat_availability", "Aubdance_predators", "Supplemental_feeding", "Low", "Medium", "High")
+  names(p.AFphi) <- c("Habitat_availability", "Abundance_predators", "Supplemental_feeding", "Low", "Medium", "High")
   head(p.AFphi)
   write_csv(p.AFphi, "./Conditional_Probability_Tables/CPT_Survival_adultFemales.csv")
   
@@ -545,7 +545,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low phi', 'Moderate phi', 'High phi'),
+      scale_color_manual(name = '', labels = c('Low calf phi', 'Moderate calf phi', 'High calf phi'),
                          values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
@@ -605,7 +605,7 @@
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-phi) %>%
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
-    #'  Plot probability of adult male population being low or high, given adult
+    #'  Plot probability of adult male abundance being low or high, given adult
     #'  male survival is low, moderate, or high, across a range of source population sizes
     prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
       ylim(0, 1)+
@@ -618,7 +618,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low AM N', 'High AM N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
@@ -628,7 +628,7 @@
   }
   #'  Calculate probability of adult male abundance being low or high given 
   #'  adult male survival is low (1), moderate (2), or high (3)
-  p.AMn.phiLo <- AM_abundance(AM.phi = 1, phi.level = "low") #SourceN = seq(10, 200, by = 20), a = 2, b1 = -2, b2 = -1, 
+  p.AMn.phiLo <- AM_abundance(AM.phi = 1, phi.level = "low") 
   p.AMn.phiMod <- AM_abundance(AM.phi = 2, phi.level = "moderate")
   p.AMn.phiHi <- AM_abundance(AM.phi = 3, phi.level = "high")
   p.AMn <- bind_rows(p.AMn.phiLo, p.AMn.phiMod, p.AMn.phiHi) %>%
@@ -675,7 +675,7 @@
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-phi) %>%
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
-    #'  Plot probability of adult female population being low or high, given adult
+    #'  Plot probability of adult female abundance being low or high, given adult
     #'  female survival is low, moderate, or high, across a range of source population sizes
     prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
       ylim(0, 1)+
@@ -688,7 +688,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low AF N', 'High AF N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
@@ -755,7 +755,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('No N', 'Low N', 'Mod N'),
+      scale_color_manual(name = '', labels = c('No immigration', 'Low immigration', 'Mod immigration'),
                          values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
@@ -789,15 +789,14 @@
     #'  a range of population sizes of the source population
     p.CapBreedYes <- 1 - p.CapBreedNo
     
-    #'  Create data frame with probabilities of adult male abundance being low vs high
+    #'  Create data frame with probabilities of whether captive breeding occurs
     (p.CapBreed <- cbind(p.CapBreedNo, p.CapBreedYes))
     #'  Add source population covariate data to data frame and 
     df <- data.frame(N.sourcePop = N.sourcePop, p1 = p.CapBreedNo, p2 = p.CapBreedYes) 
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% 
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
-    #'  Plot probability of adult male population being low or high, given adult
-    #'  male survival is low, moderate, or high, across a range of source population sizes
+    #'  Plot probability of captive breeding occuring given source population size
     prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
       ylim(0, 1)+
       geom_line(aes(color = p)) +
@@ -857,7 +856,7 @@
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-Captive.breeding) %>%
       pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
-    #'  Plot probability of augmentation being none, low,  or high, given source 
+    #'  Plot probability of augmentation being none, low, or high, given source 
     #'  population size and whether captive breeding occurs 
     prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
       ylim(0, 1)+
@@ -870,7 +869,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('No N', 'Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('No augmentation', 'Low augmentation', 'High augmentation'),
                          values = c('red', 'green', 'blue'))
     
     #'  Plot relationship
@@ -941,7 +940,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low adult N', 'High adult N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
@@ -1014,7 +1013,7 @@
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low calf N', 'High calf N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
@@ -1049,7 +1048,7 @@
     #'  Define intercept and slope coefficients 
     #'  H: Adult abundance has largest effect, then calf abundance, then augmentation 
     alpha <- 5 # Intercept for low total abundance category
-    beta1 <- -1 #'  Slope coefficient for augmentation
+    beta1 <- -1 # Slope coefficient for augmentation
     beta2 <- -4.5 # Slope coefficient for adult abundance
     beta3 <- -1.5 # Slope coefficient for calf abundance
     
@@ -1078,14 +1077,13 @@
       geom_point(aes(color = p), position = position_dodge(0.1)) +
       xlab("Augmentation")+
       ylab("Prob(Total abundance)")+
-      ggtitle(paste("Caribou abundance over varying levels of augementation when 
-                    \nadult N is", A.level, "and calf N is", YoY.level)) +
+      ggtitle(paste("Caribou abundance over varying levels of augementation when \nadult N is", A.level, "and calf N is", YoY.level)) +
       theme(
         legend.position = "top",
         legend.justification = c("left"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('Low N', 'High N'),
+      scale_color_manual(name = '', labels = c('Low total N', 'High total N'),
                          values = c('red', 'blue'))
     
     #'  Plot relationship
@@ -1114,7 +1112,96 @@
   #####  Lambda  #####
   #'  Probability of population growth decreasing, remaining stable, or increasing
   #'  given the size of the caribou population
-  
+  bou_lambda <- function(bebe.phi, n.bou, bebe.level, bou.level) {
+    #'  Adult female survival
+    AF.phi <- c(1,2,3)
+    #'  Calf survival
+    YoY.phi <- bebe.phi
+    #'  Total abundance of caribou population
+    caribou.n <- n.bou
+    
+    #'  Define intercepts and slop coefficients
+    #'  H: Population growth most strongly affected by adult female survival, 
+    #'  followed by total caribou population size and then calf survival 
+    alpha <- c(5, 7)
+    beta1 <- -2.5 # Slope for adult female survival
+    beta2 <- -1.25 # Slope for calf survival
+    beta3 <- -1  # Slope for total caribou abundance effect
+    
+    #'  Calculate probability of lambda being decreasing given AF & YoY phi and total abundance level
+    #'  Probability of lambda being in decreasing category
+    (p.lambda.decrease <- 1/(1 + exp(-(alpha[1] + beta1*AF.phi + beta2*YoY.phi + beta3*caribou.n))))
+    #'  Probability of lambda being in decreasing or stable categories
+    (p.lambda.dec.stable <- 1/(1 + exp(-(alpha[2] + beta1*AF.phi + beta2*YoY.phi + beta3*caribou.n))))
+    #'  Probability of lambda being in stable category
+    (p.lambda.stable <- p.lambda.dec.stable - p.lambda.decrease)
+    #'  Probability of lambda being in increasing category
+    (p.lambda.increasing <- 1 - p.lambda.dec.stable)
+    
+    #'  Create data frame with probabilities of prey abundance being low or high
+    (p.lambda <- cbind(p.lambda.decrease, p.lambda.stable, p.lambda.increasing)) 
+    
+    #'  Add climate change covariate data to data frame
+    (df <- data.frame(survival_AF = AF.phi, survival_C = YoY.phi, N_caribou = caribou.n, 
+                      p1 = p.lambda.decrease, p2 = p.lambda.stable, p3 = p.lambda.increasing) %>%
+        mutate(survival_AF = ifelse(survival_AF == 1, "Low", survival_AF),
+               survival_AF = ifelse(survival_AF == 2, "Medium", survival_AF),
+               survival_AF = ifelse(survival_AF == 3, "High", survival_AF),
+               survival_AF = factor(survival_AF, levels = c("Low", "Medium", "High")),
+               survival_C = ifelse(survival_C == 1, "Low", survival_C),
+               survival_C = ifelse(survival_C == 2, "Medium", survival_C),
+               survival_C = ifelse(survival_C == 3, "High", survival_C),
+               survival_C = factor(survival_C, levels = c("Low", "Medium", "High")),
+               N_caribou = ifelse(N_caribou == 0, "Low", N_caribou),
+               N_caribou = ifelse(N_caribou == 1, "High", N_caribou),
+               N_caribou = factor(N_caribou, levels = c("Low", "High")),
+               sum_to_one = rowSums(across(where(is.numeric)))))
+
+    #'  Reformat data frame for easier plotting
+    df_plot <- df %>% dplyr::select(-c(survival_C, N_caribou, sum_to_one)) %>%
+      pivot_longer(cols = c('p1','p2','p3'), 
+                   names_to = "p", values_to = "prob") 
+    names(df_plot) <- c("survival_AF", "p", "prob")
+    
+    #'  Plot probability of population growth decreasing, stable, or increasing given
+    #'  adult female and calf survival and total caribou abundance
+    prediction_plot <- ggplot(df_plot, aes(x = survival_AF, y = prob)) + 
+      ylim(0, 1) +
+      geom_point(aes(color = p), position = position_dodge(0.1)) +
+      xlab("Adult female survival")+
+      ylab("Prob(Lambda category)")+
+      ggtitle(paste("Population growth given adult female survival \nwith", bebe.level,
+                    "calf survival and", bou.level, "total caribou abundance")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('Decreasing lambda', 'Stable lamda', 'Increasing lambda'),
+                         values = c('red', 'green', 'blue'))
+    
+    #'  Plot relationship
+    plot(prediction_plot)
+    #'  Return predictions
+    return(df)
+  }
+  #'  Calculate probability of lambda being decreasing, stable, or increasing given 
+  #'  adult female and calf survival (low = 1, medium = 2, high = 3) and total 
+  #'  caribou abundance (low = 0, high = 1)
+  p.lambda.YoYLo.nLo <- bou_lambda(bebe.phi = 1, n.bou = 0, bebe.level = "low", bou.level = "low")
+  p.lambda.YoYLo.nHi <- bou_lambda(bebe.phi = 1, n.bou = 1, bebe.level = "low", bou.level = "high")
+  p.lambda.YoYMed.nLo <- bou_lambda(bebe.phi = 2, n.bou = 0, bebe.level = "medium", bou.level = "low")
+  p.lambda.YoYMed.nHi <- bou_lambda(bebe.phi = 2, n.bou = 1, bebe.level = "medium", bou.level = "high")
+  p.lambda.YoYHi.nLo <- bou_lambda(bebe.phi = 3, n.bou = 0, bebe.level = "high", bou.level = "low")
+  p.lambda.YoYHi.nHi <- bou_lambda(bebe.phi = 3, n.bou = 1, bebe.level = "high", bou.level = "high")
+  p.lambda <- bind_rows(p.lambda.YoYLo.nLo, p.lambda.YoYLo.nHi, p.lambda.YoYMed.nLo, 
+                       p.lambda.YoYMed.nHi, p.lambda.YoYHi.nLo, p.lambda.YoYHi.nHi) %>%
+    arrange(survival_AF, survival_C, N_caribou) %>%
+    dplyr::select(-sum_to_one)
+  names(p.lambda) <- c("Survival_adultFemale", "Survival_calf", "Abundance_caribou", 
+                      "Decreasing", "Stable", "Increasing")
+  head(p.lambda)
+  write_csv(p.lambda, "./Conditional_Probability_Tables/CPT_Lambda.csv")
   
   #####  ProbSuccess  #####
   #'  Probability of reintroduction success given whether the population is most 
@@ -1130,34 +1217,34 @@
     beta1 <- -3.5 # -4 # Slope for lambda categories
     
     #'  Calculate probability of success given different lambda categories
-    (p.lambda.0.1 <- 1/(1 + exp(-(alpha[1] + beta1*lambda)))) 
-    (p.lambda.0.2 <- 1/(1 + exp(-(alpha[2] + beta1*lambda))))
-    (p.lambda.0.3 <- 1/(1 + exp(-(alpha[3] + beta1*lambda))))
-    (p.lambda.0.4 <- 1/(1 + exp(-(alpha[4] + beta1*lambda))))
-    (p.lambda.0.5 <- 1/(1 + exp(-(alpha[5] + beta1*lambda))))
-    (p.lambda.0.6 <- 1/(1 + exp(-(alpha[6] + beta1*lambda))))
-    (p.lambda.0.7 <- 1/(1 + exp(-(alpha[7] + beta1*lambda))))
-    (p.lambda.0.8 <- 1/(1 + exp(-(alpha[8] + beta1*lambda))))
-    (p.lambda.0.9 <- 1/(1 + exp(-(alpha[9] + beta1*lambda))))
-    (p.lambda.1.2 <- p.lambda.0.2 - p.lambda.0.1)
-    (p.lambda.2.3 <- p.lambda.0.3 - p.lambda.0.2)
-    (p.lambda.3.4 <- p.lambda.0.4 - p.lambda.0.3)
-    (p.lambda.4.5 <- p.lambda.0.5 - p.lambda.0.4)
-    (p.lambda.5.6 <- p.lambda.0.6 - p.lambda.0.5)
-    (p.lambda.6.7 <- p.lambda.0.7 - p.lambda.0.6)
-    (p.lambda.7.8 <- p.lambda.0.8 - p.lambda.0.7)
-    (p.lambda.8.9 <- p.lambda.0.9 - p.lambda.0.8)
-    (p.lambda.9.10 <- 1 - p.lambda.0.9)
+    (p.success.0.1 <- 1/(1 + exp(-(alpha[1] + beta1*lambda)))) 
+    (p.success.0.2 <- 1/(1 + exp(-(alpha[2] + beta1*lambda))))
+    (p.success.0.3 <- 1/(1 + exp(-(alpha[3] + beta1*lambda))))
+    (p.success.0.4 <- 1/(1 + exp(-(alpha[4] + beta1*lambda))))
+    (p.success.0.5 <- 1/(1 + exp(-(alpha[5] + beta1*lambda))))
+    (p.success.0.6 <- 1/(1 + exp(-(alpha[6] + beta1*lambda))))
+    (p.success.0.7 <- 1/(1 + exp(-(alpha[7] + beta1*lambda))))
+    (p.success.0.8 <- 1/(1 + exp(-(alpha[8] + beta1*lambda))))
+    (p.success.0.9 <- 1/(1 + exp(-(alpha[9] + beta1*lambda))))
+    (p.success.1.2 <- p.success.0.2 - p.success.0.1)
+    (p.success.2.3 <- p.success.0.3 - p.success.0.2)
+    (p.success.3.4 <- p.success.0.4 - p.success.0.3)
+    (p.success.4.5 <- p.success.0.5 - p.success.0.4)
+    (p.success.5.6 <- p.success.0.6 - p.success.0.5)
+    (p.success.6.7 <- p.success.0.7 - p.success.0.6)
+    (p.success.7.8 <- p.success.0.8 - p.success.0.7)
+    (p.success.8.9 <- p.success.0.9 - p.success.0.8)
+    (p.success.9.10 <- 1 - p.success.0.9)
     
-    #'  Create data frame with probabilities of prey abundance being low or high
-    (p.hab <- cbind(p.lambda.0.1, p.lambda.1.2, p.lambda.2.3, p.lambda.3.4, p.lambda.4.5, 
-                    p.lambda.5.6, p.lambda.6.7, p.lambda.7.8, p.lambda.8.9, p.lambda.9.10)) 
+    #'  Create data frame with probabilities of success
+    (p.success <- cbind(p.success.0.1, p.success.1.2, p.success.2.3, p.success.3.4, p.success.4.5, 
+                    p.success.5.6, p.success.6.7, p.success.7.8, p.success.8.9, p.success.9.10)) 
     
     #'  Add climate change covariate data to data frame
-    (df <- data.frame(lambda = lambda, p1 = p.lambda.0.1, p2 = p.lambda.1.2, 
-                      p3 = p.lambda.2.3, p4 = p.lambda.3.4, p5 = p.lambda.4.5, 
-                      p6 = p.lambda.5.6, p7 = p.lambda.6.7, p8 = p.lambda.7.8, 
-                      p9 = p.lambda.8.9, p10 = p.lambda.9.10) %>%
+    (df <- data.frame(lambda = lambda, p1 = p.success.0.1, p2 = p.success.1.2, 
+                      p3 = p.success.2.3, p4 = p.success.3.4, p5 = p.success.4.5, 
+                      p6 = p.success.5.6, p7 = p.success.6.7, p8 = p.success.7.8, 
+                      p9 = p.success.8.9, p10 = p.success.9.10) %>%
         mutate(lambda = ifelse(lambda == 1, "Decreasing", lambda),
                lambda = ifelse(lambda == 2, "Stable", lambda),
                lambda = ifelse(lambda == 3, "Increasing", lambda),
