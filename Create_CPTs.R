@@ -174,8 +174,9 @@
     #'  Return predictions
     return(df)
   }
-  p.PreyN <- Prey_abundance()
-  names(p.PreyN) <- c("Habitat_availability", "Low", "High")
+  p.PreyN <- Prey_abundance() %>%
+    mutate(sum_to_one = rowSums(.[2:3]))
+  names(p.PreyN) <- c("Habitat_availability", "Low", "High", "sum_to_one")
   head(p.PreyN)
   write_csv(p.PreyN, "./Conditional_Probability_Tables/CPT_Abundance_altPrey.csv")
   
@@ -244,9 +245,10 @@
   p.PredN <- bind_rows(p.PredN.noCon, p.PredN.wCon) %>%
     mutate(control = ifelse(control == "without", "No", control),
            control = ifelse(control == "with", "Yes", control),
-           control = factor(control, levels = c("No", "Yes"))) %>%
+           control = factor(control, levels = c("No", "Yes")),
+           sum_to_one = rowSums(across(where(is.numeric)))) %>%
     arrange(N.altPrey, control) 
-  names(p.PredN) <- c("Abundance_altPrey", "Predator_control", "Low", "High")
+  names(p.PredN) <- c("Abundance_altPrey", "Predator_control", "Low", "High", "sum_to_one")
   head(p.PredN)
   write_csv(p.PredN, "./Conditional_Probability_Tables/CPT_Abundance_predators.csv")
   
@@ -326,9 +328,10 @@
            pred = factor(pred, levels = c("Low", "High")),
            food = ifelse(food == "without", "No", food),
            food = ifelse(food == "with", "Yes", food),
-           food = factor(food, levels = c("No", "Yes"))) %>%
+           food = factor(food, levels = c("No", "Yes")),
+           sum_to_one = rowSums(.[4:6])) %>%
     arrange(habitat.avail, pred, food) 
-  names(p.AMphi) <- c("Habitat_availability", "Abundance_predators", "Supplemental_feeding", "Low", "Medium", "High")
+  names(p.AMphi) <- c("Habitat_availability", "Abundance_predators", "Supplemental_feeding", "Low", "Medium", "High", "sum_to_one")
   head(p.AMphi)
   write_csv(p.AMphi, "./Conditional_Probability_Tables/CPT_Survival_adultMales.csv")
   
@@ -408,9 +411,10 @@
            pred = factor(pred, levels = c("Low", "High")),
            food = ifelse(food == "without", "No", food),
            food = ifelse(food == "with", "Yes", food),
-           food = factor(food, levels = c("No", "Yes"))) %>%
+           food = factor(food, levels = c("No", "Yes")),
+           sum_to_one = rowSums(.[4:6])) %>%
     arrange(habitat.avail, pred, food) 
-  names(p.AFphi) <- c("Habitat_availability", "Abundance_predators", "Supplemental_feeding", "Low", "Medium", "High")
+  names(p.AFphi) <- c("Habitat_availability", "Abundance_predators", "Supplemental_feeding", "Low", "Medium", "High", "sum_to_one")
   head(p.AFphi)
   write_csv(p.AFphi, "./Conditional_Probability_Tables/CPT_Survival_adultFemales.csv")
   
@@ -481,9 +485,10 @@
   p.AFfec <- bind_rows(p.AFfec.noFeed, p.AFfec.wFeed) %>%
     mutate(food = ifelse(food == "without", "No", food),
            food = ifelse(food == "with", "Yes", food),
-           food = factor(food, levels = c("No", "Yes"))) %>%
+           food = factor(food, levels = c("No", "Yes")),
+           sum_to_one = rowSums(.[3:5])) %>%
     arrange(habitat.avail, food) 
-  names(p.AFfec) <- c("Habitat_availability", "Supplemental_feeding", "Low", "Medium", "High")
+  names(p.AFfec) <- c("Habitat_availability", "Supplemental_feeding", "Low", "Medium", "High", "sum_to_one")
   head(p.AFfec)
   write_csv(p.AFfec, "./Conditional_Probability_Tables/CPT_Fecundity_adultFemales.csv")
   
@@ -565,9 +570,10 @@
            pred = factor(pred, levels = c("Low", "High")),
            pens = ifelse(pens == "without", "No", pens),
            pens = ifelse(pens == "with", "Yes", pens),
-           pens = factor(pens, levels = c("No", "Yes"))) %>%
+           pens = factor(pens, levels = c("No", "Yes")),
+           sum_to_one = rowSums(across(where(is.numeric)))) %>%
     arrange(AF.fecundity, pred, pens) 
-  names(p.YoYphi) <- c("Fecundity_adultFemale", "Abundance_predators", "Maternal_penning", "Low", "Medium", "High")
+  names(p.YoYphi) <- c("Fecundity_adultFemale", "Abundance_predators", "Maternal_penning", "Low", "Medium", "High", "sum_to_one")
   head(p.YoYphi)
   write_csv(p.YoYphi, "./Conditional_Probability_Tables/CPT_Survival_calf.csv")
   
@@ -635,9 +641,10 @@
     mutate(phi = ifelse(phi == "low", "Low", phi),
            phi = ifelse(phi == "moderate", "Medium", phi),
            phi = ifelse(phi == "high", "High", phi),
-           phi = factor(phi, levels = c("Low", "Medium", "High"))) %>%
+           phi = factor(phi, levels = c("Low", "Medium", "High")),
+           sum_to_one = rowSums(.[3:4])) %>%
     arrange(N.sourcePop, phi) 
-  names(p.AMn) <- c("Abundance_sourcePop", "Survival_adultMale", "Low", "High")
+  names(p.AMn) <- c("Abundance_sourcePop", "Survival_adultMale", "Low", "High", "sum_to_one")
   head(p.AMn)
   write_csv(p.AMn, "./Conditional_Probability_Tables/CPT_Abundance_adultMales.csv")
   
@@ -705,9 +712,10 @@
     mutate(phi = ifelse(phi == "low", "Low", phi),
            phi = ifelse(phi == "moderate", "Medium", phi),
            phi = ifelse(phi == "high", "High", phi),
-           phi = factor(phi, levels = c("Low", "Medium", "High"))) %>%
+           phi = factor(phi, levels = c("Low", "Medium", "High")),
+           sum_to_one = rowSums(.[3:4])) %>%
     arrange(N.sourcePop, phi) 
-  names(p.AFn) <- c("Abundance_sourcePop", "Survival_adultFemale", "Low", "High")
+  names(p.AFn) <- c("Abundance_sourcePop", "Survival_adultFemale", "Low", "High", "sum_to_one")
   head(p.AFn)
   write_csv(p.AFn, "./Conditional_Probability_Tables/CPT_Abundance_adultFemales.csv")
 
@@ -820,7 +828,8 @@
     return(df)
   }
   #'  Calculate probability of captive breeding given size of source population
-  p.CapBreed <- cap_breeding() 
+  p.CapBreed <- cap_breeding() %>%
+    mutate(sum_to_one = rowSums(.[2:3]))
   names(p.CapBreed) <- c("Abundance_sourcePop", "No", "Yes")
   head(p.CapBreed)
   write_csv(p.CapBreed, "./Conditional_Probability_Tables/CPT_Captive_breeding.csv")
@@ -889,9 +898,10 @@
   p.Augn <- bind_rows(p.Augn.BreedingN, p.Augn.BreedingY) %>%
     mutate(Captive.breeding = ifelse(Captive.breeding == 1, "No", Captive.breeding),
            Captive.breeding = ifelse(Captive.breeding == 2, "Yes", Captive.breeding),
-           Captive.breeding = factor(Captive.breeding, levels = c("No", "Yes"))) %>%
+           Captive.breeding = factor(Captive.breeding, levels = c("No", "Yes")),
+           sum_to_one = rowSums(.[3:5])) %>%
     arrange(N.sourcePop, Captive.breeding) 
-  names(p.Augn) <- c("Abundance_sourcePop", "Captive_breeding", "None", "Low", "High")
+  names(p.Augn) <- c("Abundance_sourcePop", "Captive_breeding", "None", "Low", "High", "sum_to_one")
   head(p.Augn)
   write_csv(p.Augn, "./Conditional_Probability_Tables/CPT_Abundance_adultAugment.csv")
   
@@ -967,9 +977,10 @@
            Abundance_AM = factor(Abundance_AM, levels = c("Low", "High")),
            Abundance_AF = ifelse(Abundance_AF == "rare", "Low", Abundance_AF),
            Abundance_AF = ifelse(Abundance_AF == "abundant", "High", Abundance_AF),
-           Abundance_AF = factor(Abundance_AF, levels = c("Low", "High"))) %>%
+           Abundance_AF = factor(Abundance_AF, levels = c("Low", "High")),
+           sum_to_one = rowSums(across(where(is.numeric)))) %>%
     arrange(Immigration, Abundance_AM, Abundance_AF) 
-  names(p.AN) <- c("Natural_immigration", "Abundance_adultMales", "Abundance_adultFemales", "Low", "High")
+  names(p.AN) <- c("Natural_immigration", "Abundance_adultMales", "Abundance_adultFemales", "Low", "High", "sum_to_one")
   head(p.AN)
   write_csv(p.AN, "./Conditional_Probability_Tables/CPT_Abundance_adults.csv")
   
@@ -1036,9 +1047,10 @@
   p.YoYn <- bind_rows(p.YoYn.AFLo, p.YoYn.AFHi) %>%
     mutate(Abundance_AF = ifelse(Abundance_AF == "rare", "Low", Abundance_AF),
            Abundance_AF = ifelse(Abundance_AF == "abundant", "High", Abundance_AF),
-           Abundance_AF = factor(Abundance_AF, levels = c("Low", "High"))) %>%
+           Abundance_AF = factor(Abundance_AF, levels = c("Low", "High")),
+           sum_to_one = rowSums(across(where(is.numeric)))) %>%
     arrange(Survival_calf, Abundance_AF) 
-  names(p.YoYn) <- c("Survival_calf", "Abundance_adultFemales", "Low", "High")
+  names(p.YoYn) <- c("Survival_calf", "Abundance_adultFemales", "Low", "High", "sum_to_one")
   head(p.YoYn)
   write_csv(p.YoYn, "./Conditional_Probability_Tables/CPT_Abundance_calves.csv")
   
@@ -1113,9 +1125,10 @@
            Abundance_A = factor(Abundance_A, levels = c("Low", "High")),
            Abundance_C = ifelse(Abundance_C == "low", "Low", Abundance_C),
            Abundance_C = ifelse(Abundance_C == "high", "High", Abundance_C),
-           Abundance_C = factor(Abundance_C, levels = c("Low", "High"))) %>%
+           Abundance_C = factor(Abundance_C, levels = c("Low", "High")),
+           sum_to_one = rowSums(across(where(is.numeric)))) %>%
     arrange(Augment, Abundance_A, Abundance_C) 
-  names(p.N) <- c("Abundance_adultAugmentation", "Abundance_adults", "Abundance_calves", "Low", "High")
+  names(p.N) <- c("Abundance_adultAugmentation", "Abundance_adults", "Abundance_calves", "Low", "High", "sum_to_one")
   head(p.N)
   write_csv(p.N, "./Conditional_Probability_Tables/CPT_Abundance_caribou.csv")
   
@@ -1208,10 +1221,9 @@
   p.lambda.YoYHi.nHi <- bou_lambda(bebe.phi = 3, n.bou = 1, bebe.level = "high", bou.level = "high")
   p.lambda <- bind_rows(p.lambda.YoYLo.nLo, p.lambda.YoYLo.nHi, p.lambda.YoYMed.nLo, 
                        p.lambda.YoYMed.nHi, p.lambda.YoYHi.nLo, p.lambda.YoYHi.nHi) %>%
-    arrange(survival_AF, survival_C, N_caribou) %>%
-    dplyr::select(-sum_to_one)
+    arrange(survival_AF, survival_C, N_caribou) 
   names(p.lambda) <- c("Survival_adultFemale", "Survival_calf", "Abundance_caribou", 
-                      "Decreasing", "Stable", "Increasing")
+                      "Decreasing", "Stable", "Increasing", "sum_to_one")
   head(p.lambda)
   write_csv(p.lambda, "./Conditional_Probability_Tables/CPT_Lambda.csv")
   
