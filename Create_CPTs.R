@@ -988,36 +988,42 @@
   #####  Abundance_calves  #####
   #'  ---------------------
   #'  Probability of calf abundance being low or high given the level of adult 
-  #'  female abundance and level calf survival (low, medium, or high)
-  C_abundance <- function(AF.n, AF.level) {   
+  #'  female abundance, level calf survival (low, medium, or high), and whether
+  #'  captive breeding occurs (no vs yes)
+  C_abundance <- function(AF.n, cap.breed, breed.level, AF.level) {   
     #'  Calf survival categories
     phi <- c(1, 2, 3)
     #'  Holding Abundance_adultFemales at a fixed level (low vs high)
     N.AF <- AF.n
+    #'  Holding captive breeding at fixed level (no vs yes)
+    cap.breeding <- cap.breed
     
     #'  Define intercept and slope coefficients 
     #'  H: Calf survival influences calf abundance more than adult female abundance 
     alpha <- c(5) # Intercept for low calf abundance category
     beta1 <- -2 # Slope coefficient for calf survival
     beta2 <- -0.75 # Slope coefficient for adult female abundance
+    beta3 <- -2.25 # Slope coefficient for captive breeding
     
     #'  Calculate probability of calf abundance being low given different levels 
     #'  of adult female abundance and calf survival probabilities
-    (p.YoYnLo <- 1/(1 + exp(-(alpha[1] + beta1*phi + beta2*N.AF))))
+    (p.YoYnLo <- 1/(1 + exp(-(alpha[1] + beta1*phi + beta2*N.AF + beta3*cap.breeding))))
     #'  Probability of being in high abundance category given all of the above
     (p.YoYnHi <- 1 - (p.YoYnLo))
     
     #'  Create data frame with probabilities of calf abundance being low or high
     (p.YoYN <- cbind(p.YoYnLo, p.YoYnHi))
     #'  Add covariate data to data frame  
-    df <- data.frame(Survival_calf = phi, Abundance_AF = AF.level, 
+    df <- data.frame(Survival_calf = phi, Abundance_AF = AF.level, Captive_breeding = breed.level,
                      p1 = p.YoYnLo, p2 = p.YoYnHi) %>%
       mutate(Survival_calf = ifelse(Survival_calf == 1, "Low", Survival_calf),
              Survival_calf = ifelse(Survival_calf == 2, "Moderate", Survival_calf),
              Survival_calf = ifelse(Survival_calf == 3, "High", Survival_calf),
-             Survival_calf = factor(Survival_calf, levels = c("Low", "Moderate", "High")))
+             Survival_calf = factor(Survival_calf, levels = c("Low", "Moderate", "High")),
+             Captive_breeding = ifelse(Captive_breeding == 0, "No", "Yes"),
+             Captive_breeding = factor(Captive_breeding, levels = c("No", "Yes")))
     #'  Reformat data frame for easier plotting
-    df_plot <- df %>% dplyr::select(-Abundance_AF) %>%
+    df_plot <- df %>% dplyr::select(-c(Abundance_AF, Captive_breeding)) %>%
       pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
     #'  Plot probability of calf abundance being low or high given adult female 
     #'  abundance and calf survival
@@ -1026,7 +1032,7 @@
       geom_point(aes(color = p), position = position_dodge(0.1)) +
       xlab("Calf survival")+
       ylab("Prob(Calf abundance)")+
-      ggtitle(paste("Calf abundance over varying levels of calf survival when \nadult females are", AF.level)) +
+      ggtitle(paste("Calf abundance over varying levels of calf survival", breed.level, "captive breeding \nwhen adult females are", AF.level)) +
       theme(
         legend.position = "top",
         legend.justification = c("left"),
@@ -1042,15 +1048,18 @@
   }
   #'  Calculate probability of calf abundance being low vs high given calf
   #'  survival and adult female abundance
-  p.YoYn.AFLo <- C_abundance(AF.n = 0, AF.level = "rare")
-  p.YoYn.AFHi <- C_abundance(AF.n = 1, AF.level = "abundant")
-  p.YoYn <- bind_rows(p.YoYn.AFLo, p.YoYn.AFHi) %>%
+  p.YoYn.AFLo.BreedNo <- C_abundance(AF.n = 0, cap.breed = 0, breed.level = "without", AF.level = "rare")
+  p.YoYn.AFHi.BreedNo <- C_abundance(AF.n = 1, cap.breed = 0, breed.level = "without", AF.level = "abundant")
+  p.YoYn.AFLo.BreedYes <- C_abundance(AF.n = 0, cap.breed = 1, breed.level = "with", AF.level = "rare")
+  p.YoYn.AFHi.BreedYes <- C_abundance(AF.n = 1, cap.breed = 1, breed.level = "with", AF.level = "abundant")
+  p.YoYn <- bind_rows(p.YoYn.AFLo.BreedNo, p.YoYn.AFHi.BreedNo, p.YoYn.AFLo.BreedYes, p.YoYn.AFHi.BreedYes) %>%
     mutate(Abundance_AF = ifelse(Abundance_AF == "rare", "Low", Abundance_AF),
            Abundance_AF = ifelse(Abundance_AF == "abundant", "High", Abundance_AF),
            Abundance_AF = factor(Abundance_AF, levels = c("Low", "High")),
+           Captive_breeding = ifelse(Captive_breeding == "no", "No", "Yes"),
            sum_to_one = rowSums(across(where(is.numeric)))) %>%
-    arrange(Survival_calf, Abundance_AF) 
-  names(p.YoYn) <- c("Survival_calf", "Abundance_adultFemales", "Low", "High", "sum_to_one")
+    arrange(Survival_calf, Abundance_AF, Captive_breeding) 
+  names(p.YoYn) <- c("Survival_calf", "Abundance_adultFemales", "Captive_breeding", "Low", "High", "sum_to_one")
   head(p.YoYn)
   write_csv(p.YoYn, "./Conditional_Probability_Tables/CPT_Abundance_calves.csv")
   
