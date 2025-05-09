@@ -710,9 +710,10 @@
   names(p.AFn) <- c("Abundance_sourcePop", "Survival_adultFemale", "Low", "High")
   head(p.AFn)
   write_csv(p.AFn, "./Conditional_Probability_Tables/CPT_Abundance_adultFemales.csv")
-  
-  
+
+  #'  ------------------------
   #####  Natural immigration  #####
+  #'  ------------------------
   #'  Predict probability of no, low, or moderate natural immigration from BC 
   #'  source populations to US under varying levels of source population
   immigration <- function() {
@@ -768,7 +769,9 @@
   head(p.ImmN)
   write_csv(p.ImmN, "./Conditional_Probability_Tables/CPT_Natural_immigration.csv")  
   
+  #'  ---------------------
   #####  Captive_breeding  #####
+  #'  ---------------------
   #'  Probability of whether captive breeding occurs given the size of the source 
   #'  population
   cap_breeding <- function() {  
@@ -822,7 +825,9 @@
   head(p.CapBreed)
   write_csv(p.CapBreed, "./Conditional_Probability_Tables/CPT_Captive_breeding.csv")
   
+  #'  --------------------------------
   #####  Abundance_adultAugmentation  #####
+  #'  --------------------------------
   #'  Probability of augmenting caribou population with adults from the source
   #'  population given size of source population and whether captive breeding occurs (No, Yes)
   augment <- function(Cap.Breed, cap.level) {  
@@ -890,7 +895,9 @@
   head(p.Augn)
   write_csv(p.Augn, "./Conditional_Probability_Tables/CPT_Abundance_adultAugment.csv")
   
+  #'  ---------------------
   #####  Abundance_adults  #####
+  #'  ---------------------
   #'  Probability of adult abundance being low or high given the level of adult 
   #'  male and adult female abundances and level of natural immigration (none, low, moderate)
   A_abundance <- function(AM.n, AF.n, AM.level, AF.level) {   
@@ -966,8 +973,9 @@
   head(p.AN)
   write_csv(p.AN, "./Conditional_Probability_Tables/CPT_Abundance_adults.csv")
   
-  
+  #'  ---------------------
   #####  Abundance_calves  #####
+  #'  ---------------------
   #'  Probability of calf abundance being low or high given the level of adult 
   #'  female abundance and level calf survival (low, medium, or high)
   C_abundance <- function(AF.n, AF.level) {   
@@ -1034,7 +1042,9 @@
   head(p.YoYn)
   write_csv(p.YoYn, "./Conditional_Probability_Tables/CPT_Abundance_calves.csv")
   
+  #'  ----------------------
   #####  Abundance_caribou  #####
+  #'  ----------------------
   #'  Probability of caribou abundance being low or high given the level of adult 
   #'  abundance, calf abundance, and level of augmentation
   Total_abundance <- function(A.n, YoY.n, A.level, YoY.level) {   
@@ -1109,7 +1119,9 @@
   head(p.N)
   write_csv(p.N, "./Conditional_Probability_Tables/CPT_Abundance_caribou.csv")
   
+  #'  -----------
   #####  Lambda  #####
+  #'  -----------
   #'  Probability of population growth decreasing, remaining stable, or increasing
   #'  given the size of the caribou population
   bou_lambda <- function(bebe.phi, n.bou, bebe.level, bou.level) {
@@ -1203,7 +1215,9 @@
   head(p.lambda)
   write_csv(p.lambda, "./Conditional_Probability_Tables/CPT_Lambda.csv")
   
+  #'  ----------------
   #####  ProbSuccess  #####
+  #'  ----------------
   #'  Probability of reintroduction success given whether the population is most 
   #'  likely to be decreasing, stable, or increasing
   PrSuccess <- function() {
@@ -1287,7 +1301,9 @@
   head(p.PrSuccess)
   write_csv(p.PrSuccess, "./Conditional_Probability_Tables/CPT_ProbSuccess.csv")
   
+  #'  ------------
   #####  Utility  #####
+  #'  ------------
   #'  How much utility do we get out of the decision given the probability of success?
   
   
