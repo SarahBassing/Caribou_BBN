@@ -777,133 +777,133 @@
   head(p.ImmN)
   write_csv(p.ImmN, "./Conditional_Probability_Tables/CPT_Natural_immigration.csv")  
   
-  #'  ---------------------
-  #####  Captive_breeding  #####
-  #'  ---------------------
-  #'  Probability of whether captive breeding occurs given the size of the source 
-  #'  population
-  cap_breeding <- function() {  
-    #'  Population size of source population
-    N.sourcePop <- seq(10, 200, by = 20)
-    #'  Center and scale N.sourcePop so values don't range too widely
-    N.sourcePopz <- scale(N.sourcePop)
-    
-    #'  Define intercept and slope coefficients
-    #'  Whether captive breeding occurs depends on size of the source population
-    alpha <- 0 # Intercept for No captive breeding
-    beta1 <- 2 # Slope coefficient for abundance of source population   
-    
-    #'  Calculate probability of adult male abundance being low vs high given 
-    #'  varying sizes of the source population and levels of adult male survival
-    (p.CapBreedNo <- 1/(1+exp(-(alpha + beta1*N.sourcePopz))))
-    #'  Probability of adult male abundance being high given low male survival over 
-    #'  a range of population sizes of the source population
-    p.CapBreedYes <- 1 - p.CapBreedNo
-    
-    #'  Create data frame with probabilities of whether captive breeding occurs
-    (p.CapBreed <- cbind(p.CapBreedNo, p.CapBreedYes))
-    #'  Add source population covariate data to data frame and 
-    df <- data.frame(N.sourcePop = N.sourcePop, p1 = p.CapBreedNo, p2 = p.CapBreedYes) 
-    #'  Reformat data frame for easier plotting
-    df_plot <- df %>% 
-      pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
-    #'  Plot probability of captive breeding occuring given source population size
-    prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
-      ylim(0, 1)+
-      geom_line(aes(color = p)) +
-      xlab("Source population size")+
-      ylab("Prob(Captive Breeding)")+
-      ggtitle(paste("Captive breeding depending on size of source population")) +
-      theme(
-        legend.position = "top",
-        legend.justification = c("left"),
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('No', 'Yes'),
-                         values = c('red', 'blue'))
-    
-    #'  Plot relationship
-    plot(prediction_plot)
-    #'  Return predictions
-    return(df)
-  }
-  #'  Calculate probability of captive breeding given size of source population
-  p.CapBreed <- cap_breeding() %>%
-    mutate(sum_to_one = rowSums(.[2:3]))
-  names(p.CapBreed) <- c("Abundance_sourcePop", "No", "Yes")
-  head(p.CapBreed)
-  write_csv(p.CapBreed, "./Conditional_Probability_Tables/CPT_Captive_breeding.csv")
+  #' #'  ---------------------
+  #' #####  Captive_breeding  #####
+  #' #'  ---------------------
+  #' #'  Probability of whether captive breeding occurs given the size of the source 
+  #' #'  population
+  #' cap_breeding <- function() {  
+  #'   #'  Population size of source population
+  #'   N.sourcePop <- seq(10, 200, by = 20)
+  #'   #'  Center and scale N.sourcePop so values don't range too widely
+  #'   N.sourcePopz <- scale(N.sourcePop)
+  #'   
+  #'   #'  Define intercept and slope coefficients
+  #'   #'  Whether captive breeding occurs depends on size of the source population
+  #'   alpha <- 0 # Intercept for No captive breeding
+  #'   beta1 <- 2 # Slope coefficient for abundance of source population   
+  #'   
+  #'   #'  Calculate probability of adult male abundance being low vs high given 
+  #'   #'  varying sizes of the source population and levels of adult male survival
+  #'   (p.CapBreedNo <- 1/(1+exp(-(alpha + beta1*N.sourcePopz))))
+  #'   #'  Probability of adult male abundance being high given low male survival over 
+  #'   #'  a range of population sizes of the source population
+  #'   p.CapBreedYes <- 1 - p.CapBreedNo
+  #'   
+  #'   #'  Create data frame with probabilities of whether captive breeding occurs
+  #'   (p.CapBreed <- cbind(p.CapBreedNo, p.CapBreedYes))
+  #'   #'  Add source population covariate data to data frame and 
+  #'   df <- data.frame(N.sourcePop = N.sourcePop, p1 = p.CapBreedNo, p2 = p.CapBreedYes) 
+  #'   #'  Reformat data frame for easier plotting
+  #'   df_plot <- df %>% 
+  #'     pivot_longer(cols = c('p1','p2'), names_to = "p", values_to = "prob")
+  #'   #'  Plot probability of captive breeding occuring given source population size
+  #'   prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
+  #'     ylim(0, 1)+
+  #'     geom_line(aes(color = p)) +
+  #'     xlab("Source population size")+
+  #'     ylab("Prob(Captive Breeding)")+
+  #'     ggtitle(paste("Captive breeding depending on size of source population")) +
+  #'     theme(
+  #'       legend.position = "top",
+  #'       legend.justification = c("left"),
+  #'       legend.box.just = "right",
+  #'       legend.margin = margin(6, 6, 6, 6)) +
+  #'     scale_color_manual(name = '', labels = c('No', 'Yes'),
+  #'                        values = c('red', 'blue'))
+  #'   
+  #'   #'  Plot relationship
+  #'   plot(prediction_plot)
+  #'   #'  Return predictions
+  #'   return(df)
+  #' }
+  #' #'  Calculate probability of captive breeding given size of source population
+  #' p.CapBreed <- cap_breeding() %>%
+  #'   mutate(sum_to_one = rowSums(.[2:3]))
+  #' names(p.CapBreed) <- c("Abundance_sourcePop", "No", "Yes")
+  #' head(p.CapBreed)
+  #' write_csv(p.CapBreed, "./Conditional_Probability_Tables/CPT_Captive_breeding.csv")
   
-  #'  --------------------------------
-  #####  Abundance_adultAugmentation  #####
-  #'  --------------------------------
-  #'  Probability of augmenting caribou population with adults from the source
-  #'  population given size of source population and whether captive breeding occurs (No, Yes)
-  augment <- function(Cap.Breed, cap.level) {  
-    #'  Holding captive.breeding at a fixed value (No vs Yes)
-    captive.breeding <- Cap.Breed 
-    #'  Population size of source population
-    N.sourcePop <- seq(10, 200, by = 20)
-    #'  Center and scale N.sourcePop so values don't range too widely
-    N.sourcePopz <- scale(N.sourcePop)
-    
-    #'  Define intercept and slope coefficients 
-    #'  H: Augmentation will depend on size of source population and whether captive
-    #'  breeding occurs
-    alpha <- c(0, 1) # Intercept for no augmentation category
-    beta1 <- -1.5 # Slope coefficient for abundance of source population   
-    beta2 <- 0.75 # Slope coefficient for captive breeding
-    
-    #'  Calculate probability of augmenting population with adults from source
-    #'  population being none, low, or high given varying sizes of the source population 
-    #'  and whether captive breeding occurs (no vs yes)
-    (p.AugnNo <- 1/(1+exp(-(alpha[1] + beta1*N.sourcePopz + beta2*captive.breeding))))
-    (p.AugnNoLo <- 1/(1+exp(-(alpha[2] + beta1*N.sourcePopz + beta2*captive.breeding))))
-    (p.AugnLo <- p.AugnNoLo - p.AugnNo)
-    (p.AugnHi <- 1 - p.AugnNoLo)
-    
-    #'  Create data frame with probabilities of augmentation being none, low or high
-    (p.Augn <- cbind(p.AugnNo, p.AugnLo, p.AugnHi))
-    #'  Add source population and captive breeding covariate data to data frame and 
-    df <- data.frame(N.sourcePop = N.sourcePop, Captive.breeding = captive.breeding, 
-                     p1 = p.AugnNo, p2 = p.AugnLo, p3 = p.AugnHi) 
-    #'  Reformat data frame for easier plotting
-    df_plot <- df %>% dplyr::select(-Captive.breeding) %>%
-      pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
-    #'  Plot probability of augmentation being none, low, or high, given source 
-    #'  population size and whether captive breeding occurs 
-    prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
-      ylim(0, 1)+
-      geom_line(aes(color = p)) +
-      xlab("Source population size")+
-      ylab("Prob(Adult augmentation)")+
-      ggtitle(paste("Adult augementation when captive breeding", cap.level)) +
-      theme(
-        legend.position = "top",
-        legend.justification = c("left"),
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6)) +
-      scale_color_manual(name = '', labels = c('No augmentation', 'Low augmentation', 'High augmentation'),
-                         values = c('red', 'green', 'blue'))
-    
-    #'  Plot relationship
-    plot(prediction_plot)
-    #'  Return predictions
-    return(df)
-  }
-  #'  Calculate probability of adult augmentation given captive breeding and source
-  #'  population
-  p.Augn.BreedingN <- augment(Cap.Breed = 1, cap.level = "does not occur") 
-  p.Augn.BreedingY <- augment(Cap.Breed = 2, cap.level = "occurs")
-  p.Augn <- bind_rows(p.Augn.BreedingN, p.Augn.BreedingY) %>%
-    mutate(Captive.breeding = ifelse(Captive.breeding == 1, "No", Captive.breeding),
-           Captive.breeding = ifelse(Captive.breeding == 2, "Yes", Captive.breeding),
-           Captive.breeding = factor(Captive.breeding, levels = c("No", "Yes")),
-           sum_to_one = rowSums(.[3:5])) %>%
-    arrange(N.sourcePop, Captive.breeding) 
-  names(p.Augn) <- c("Abundance_sourcePop", "Captive_breeding", "None", "Low", "High", "sum_to_one")
-  head(p.Augn)
-  write_csv(p.Augn, "./Conditional_Probability_Tables/CPT_Abundance_adultAugment.csv")
+  #' #'  --------------------------------
+  #' #####  Abundance_adultAugmentation  #####
+  #' #'  --------------------------------
+  #' #'  Probability of augmenting caribou population with adults from the source
+  #' #'  population given size of source population and whether captive breeding occurs (No, Yes)
+  #' augment <- function(Cap.Breed, cap.level) {  
+  #'   #'  Holding captive.breeding at a fixed value (No vs Yes)
+  #'   captive.breeding <- Cap.Breed 
+  #'   #'  Population size of source population
+  #'   N.sourcePop <- seq(10, 200, by = 20)
+  #'   #'  Center and scale N.sourcePop so values don't range too widely
+  #'   N.sourcePopz <- scale(N.sourcePop)
+  #'   
+  #'   #'  Define intercept and slope coefficients 
+  #'   #'  H: Augmentation will depend on size of source population and whether captive
+  #'   #'  breeding occurs
+  #'   alpha <- c(0, 1) # Intercept for no augmentation category
+  #'   beta1 <- -1.5 # Slope coefficient for abundance of source population   
+  #'   beta2 <- 0.75 # Slope coefficient for captive breeding
+  #'   
+  #'   #'  Calculate probability of augmenting population with adults from source
+  #'   #'  population being none, low, or high given varying sizes of the source population 
+  #'   #'  and whether captive breeding occurs (no vs yes)
+  #'   (p.AugnNo <- 1/(1+exp(-(alpha[1] + beta1*N.sourcePopz + beta2*captive.breeding))))
+  #'   (p.AugnNoLo <- 1/(1+exp(-(alpha[2] + beta1*N.sourcePopz + beta2*captive.breeding))))
+  #'   (p.AugnLo <- p.AugnNoLo - p.AugnNo)
+  #'   (p.AugnHi <- 1 - p.AugnNoLo)
+  #'   
+  #'   #'  Create data frame with probabilities of augmentation being none, low or high
+  #'   (p.Augn <- cbind(p.AugnNo, p.AugnLo, p.AugnHi))
+  #'   #'  Add source population and captive breeding covariate data to data frame and 
+  #'   df <- data.frame(N.sourcePop = N.sourcePop, Captive.breeding = captive.breeding, 
+  #'                    p1 = p.AugnNo, p2 = p.AugnLo, p3 = p.AugnHi) 
+  #'   #'  Reformat data frame for easier plotting
+  #'   df_plot <- df %>% dplyr::select(-Captive.breeding) %>%
+  #'     pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
+  #'   #'  Plot probability of augmentation being none, low, or high, given source 
+  #'   #'  population size and whether captive breeding occurs 
+  #'   prediction_plot <- ggplot(df_plot, aes(x = N.sourcePop, y = prob)) + 
+  #'     ylim(0, 1)+
+  #'     geom_line(aes(color = p)) +
+  #'     xlab("Source population size")+
+  #'     ylab("Prob(Adult augmentation)")+
+  #'     ggtitle(paste("Adult augementation when captive breeding", cap.level)) +
+  #'     theme(
+  #'       legend.position = "top",
+  #'       legend.justification = c("left"),
+  #'       legend.box.just = "right",
+  #'       legend.margin = margin(6, 6, 6, 6)) +
+  #'     scale_color_manual(name = '', labels = c('No augmentation', 'Low augmentation', 'High augmentation'),
+  #'                        values = c('red', 'green', 'blue'))
+  #'   
+  #'   #'  Plot relationship
+  #'   plot(prediction_plot)
+  #'   #'  Return predictions
+  #'   return(df)
+  #' }
+  #' #'  Calculate probability of adult augmentation given captive breeding and source
+  #' #'  population
+  #' p.Augn.BreedingN <- augment(Cap.Breed = 1, cap.level = "does not occur") 
+  #' p.Augn.BreedingY <- augment(Cap.Breed = 2, cap.level = "occurs")
+  #' p.Augn <- bind_rows(p.Augn.BreedingN, p.Augn.BreedingY) %>%
+  #'   mutate(Captive.breeding = ifelse(Captive.breeding == 1, "No", Captive.breeding),
+  #'          Captive.breeding = ifelse(Captive.breeding == 2, "Yes", Captive.breeding),
+  #'          Captive.breeding = factor(Captive.breeding, levels = c("No", "Yes")),
+  #'          sum_to_one = rowSums(.[3:5])) %>%
+  #'   arrange(N.sourcePop, Captive.breeding) 
+  #' names(p.Augn) <- c("Abundance_sourcePop", "Captive_breeding", "None", "Low", "High", "sum_to_one")
+  #' head(p.Augn)
+  #' write_csv(p.Augn, "./Conditional_Probability_Tables/CPT_Abundance_adultAugment.csv")
   
   #'  ---------------------
   #####  Abundance_adults  #####
@@ -1326,10 +1326,15 @@
   #####  Utility  #####
   #'  ------------
   #'  How much utility do we get out of the decision given the probability of success?
-  
-  
-  
-  
+  pr.success <- c("0 to 0.1", "0.1 to 0.2", "0.2 to 0.3",
+                   "0.3 to 0.4", "0.4 to 0.5", "0.5 to 0.6", "0.6 to 0.7", 
+                   "0.7 to 0.8","0.8 to 0.9", "0.9 to 1")
+  util <- c(0, 0, 0, 0, 10, 25, 50, 75, 90, 100)
+  utility <- bind_cols(pr.success, util) %>% data.frame()
+  names(utility) <- c("ProbSuccess", "Utility")
+  print(utility)
+  write_csv(utility, "./Conditional_Probability_Tables/CPT_Utility.csv")
+ 
   
   
   
