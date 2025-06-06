@@ -1478,7 +1478,43 @@
   #'  Save data frame to be filled in outside of R
   write_csv(utility_setup, file = "./Conditional_Probability_Tables/utility_fillable.csv")
   
- 
+  #'  Read in filled utility CPT
+  utility <- read_csv("./Conditional_Probability_Tables/utility_filled.csv") %>%
+    mutate(translocateA = factor(translocateA, levels = c("None", "Few", "Many")),
+           sourcePop = factor(sourcePop, levels = c("Very Low", "Low", "Medium", "High")),
+           Recovery = factor(Recovery, levels = c("Very Low", "Low", "Moderate", "High", "Very High")))
+  plot_utility <- function(util, source.level) {
+    prediction_plot <- ggplot(util, aes(x = Recovery, y = U, group = translocateA)) + 
+      ylim(0, 100) +
+      geom_line(aes(color = translocateA)) +
+      geom_point(aes(color = translocateA)) +
+      xlab("Recovery potential") +
+      ylab("Utility") +
+      ggtitle(paste(source.level, "source population")) +
+      theme(
+        legend.position = "top",
+        legend.justification = c("left"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)) +
+      scale_color_manual(name = '', labels = c('None translocated', 'Few translocated', 'Many translocated'),
+                         values = c('red', 'green', 'blue'))
+    print(prediction_plot)
+    return(prediction_plot)
+  }
+  utility_sourcePop_Vlow <- plot_utility(utility[utility$sourcePop == "Very Low",], source.level = "Very Low")
+  utility_sourcePop_Low <- plot_utility(utility[utility$sourcePop == "Low",], source.level = "Low")
+  utility_sourcePop_Med <- plot_utility(utility[utility$sourcePop == "Medium",], source.level = "Medium")
+  utility_sourcePop_High <- plot_utility(utility[utility$sourcePop == "High",], source.level = "High")
+  (utility_plots <- utility_sourcePop_Vlow + utility_sourcePop_Low + 
+    utility_sourcePop_Med + utility_sourcePop_High + plot_layout(ncol = 2) +
+    plot_annotation(title = 'Utility given translocation decision, recovery potential, and...') +
+    plot_layout(guides = "collect") & theme(legend.position = 'top'))
+  ggsave("./Conditional_Probability_Tables/Utility_plots.tiff", utility_plots, 
+         units = "in", width = 12, height = 8, dpi = 400, device = 'tiff', compression = "lzw")
+  
+  
+  
+  
   
   
   
