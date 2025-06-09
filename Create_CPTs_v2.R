@@ -411,7 +411,8 @@
       plot_annotation(title = 'Predation rate given interaction between road density and...') +
       p.predation.NpredHi[[3]] + plot_layout(guides = "collect") & theme(legend.position = 'top'))
   #'  Create full CPT
-  p.predation <- bind_rows(p.predation.NpredLow[[1]], p.predation.NpredMod[[1]], p.predation.NpredHi[[1]])
+  p.predation <- bind_rows(p.predation.NpredLow[[1]], p.predation.NpredMod[[1]], p.predation.NpredHi[[1]]) %>%
+    arrange(road.density)
   names(p.predation) <- c("Road_density", "Abundance_predators", "0 to 10", "10 to 20", "20 to 30",
                         "30 to 40", "40 to 50", "50 to 60", "60 to 70",
                         "70 to 80", "80 to 90", "90 to 100", "sum_to_one")
@@ -1082,7 +1083,8 @@
       mutate(abundance_AM = ifelse(abundance_AM == 1, "Low", abundance_AM),
              abundance_AM = ifelse(abundance_AM == 2, "Medium", abundance_AM),
              abundance_AM = ifelse(abundance_AM == 3, "High", abundance_AM),
-             abundance_AM = factor(abundance_AM, levels = c("Low", "Medium", "High")))
+             abundance_AM = factor(abundance_AM, levels = c("Low", "Medium", "High")),
+             abundance_AF = factor(abundance_AF, levels = c("Low", "Medium", "High")))
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-c(abundance_AF)) %>%
       pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
@@ -1124,7 +1126,7 @@
     arrange(abundance_AM, abundance_AF) 
   names(p.AN) <- c("Abundance_adultMales", "Abundance_adultFemales", "Low", "Medium", "High", "sum_to_one")
   head(p.AN)
-  write_csv(p.AN, "./Conditional_Probability_Tables/CPT_Abundance_adults.csv")
+  write_csv(p.AN, "./Conditional_Probability_Tables/CPT_v2_Abundance_adults.csv")
   ggsave("./Conditional_Probability_Tables/CPT_plots_Abundance_adults.tiff", p.AN.plots, 
          units = "in", width = 12, height = 6, dpi = 400, device = 'tiff', compression = "lzw")
   
@@ -1165,7 +1167,9 @@
       mutate(Survival_calf = ifelse(Survival_calf == 1, "Low", Survival_calf),
              Survival_calf = ifelse(Survival_calf == 2, "Moderate", Survival_calf),
              Survival_calf = ifelse(Survival_calf == 3, "High", Survival_calf),
-             Survival_calf = factor(Survival_calf, levels = c("Low", "Moderate", "High")))
+             Survival_calf = factor(Survival_calf, levels = c("Low", "Moderate", "High")),
+             Abundance_AF = factor(Abundance_AF, levels = c("Low", "Medium", "High")),
+             Fecundity_AF = factor(Fecundity_AF, levels = c("low", "medium", "high")))
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-c(Abundance_AF, Fecundity_AF)) %>%
       pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
@@ -1321,7 +1325,9 @@
       mutate(Abundance_A = ifelse(Abundance_A == 1, "Low", Abundance_A),
              Abundance_A = ifelse(Abundance_A == 2, "Medium", Abundance_A),
              Abundance_A = ifelse(Abundance_A == 3, "High", Abundance_A),
-             Abundance_A = factor(Abundance_A, levels = c("Low", "Medium", "High")))
+             Abundance_A = factor(Abundance_A, levels = c("Low", "Medium", "High")),
+             Abundance_C = factor(Abundance_C, levels = c("Low", "Medium", "High")),
+             Nat_Imm = factor(Nat_Imm, levels = c("no", "low", "moderate")))
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-c(Abundance_C, Nat_Imm)) %>%
       pivot_longer(cols = c('p1','p2','p3'), names_to = "p", values_to = "prob")
@@ -1413,6 +1419,7 @@
                total.N = ifelse(total.N == 2, "Medium", total.N),
                total.N = ifelse(total.N == 3, "High", total.N),
                total.N = factor(total.N, levels = c("Low", "Medium", "High")),
+               acts_o_god = factor(acts_o_god, levels = c("Rare", "Occasional", "All Day Every Day")),
                sum_to_one = rowSums(across(where(is.numeric)))))
     #'  Reformat data frame for easier plotting
     df_plot <- df %>% dplyr::select(-c(acts_o_god, sum_to_one)) %>%
